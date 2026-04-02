@@ -171,9 +171,7 @@ const DashboardOverview = () => {
                     animate={{ width: `${skill.level}%` }}
                     transition={{ duration: 1, delay: 0.6 }}
                     className="h-full rounded-full"
-                    style={{
-                      background: `linear-gradient(90deg, hsl(160, 84%, 39%), hsl(190, 80%, 45%))`,
-                    }}
+                    className="h-full rounded-full bg-primary"
                   />
                 </div>
               </div>
