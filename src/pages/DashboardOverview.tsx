@@ -170,7 +170,6 @@ const DashboardOverview = () => {
                     initial={{ width: 0 }}
                     animate={{ width: `${skill.level}%` }}
                     transition={{ duration: 1, delay: 0.6 }}
-                    className="h-full rounded-full"
                     className="h-full rounded-full bg-primary"
                   />
                 </div>
