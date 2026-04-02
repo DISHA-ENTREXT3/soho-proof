@@ -8,6 +8,8 @@ import NotFound from "./pages/NotFound.tsx";
 import DashboardLayout from "./components/dashboard/DashboardLayout.tsx";
 import DashboardOverview from "./pages/DashboardOverview.tsx";
 import DashboardChallenges from "./pages/DashboardChallenges.tsx";
+import CreateChallenge from "./pages/CreateChallenge.tsx";
+import ChallengeDetail from "./pages/ChallengeDetail.tsx";
 import DashboardLeaderboard from "./pages/DashboardLeaderboard.tsx";
 import DashboardReputation from "./pages/DashboardReputation.tsx";
 import DashboardSettings from "./pages/DashboardSettings.tsx";
@@ -25,6 +27,8 @@ const App = () => (
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<DashboardOverview />} />
             <Route path="challenges" element={<DashboardChallenges />} />
+            <Route path="challenges/create" element={<CreateChallenge />} />
+            <Route path="challenges/:id" element={<ChallengeDetail />} />
             <Route path="leaderboard" element={<DashboardLeaderboard />} />
             <Route path="reputation" element={<DashboardReputation />} />
             <Route path="settings" element={<DashboardSettings />} />
