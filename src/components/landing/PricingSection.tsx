@@ -54,7 +54,7 @@ const PricingSection = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: false, amount: 0.1 }}
           className="text-center mb-16"
         >
           <span className="text-xs uppercase tracking-widest text-primary font-medium">Pricing</span>
@@ -72,7 +72,7 @@ const PricingSection = () => {
               key={plan.name}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ once: false, amount: 0.1 }}
               transition={{ delay: i * 0.1 }}
               className={`glass p-8 flex flex-col ${
                 plan.highlight ? "border-primary/40 glow-primary relative" : ""

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Minimalist, premium background -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EAA6B9" /> <!-- Bloom Rose -->
+      <stop offset="100%" stop-color="#361E28" /> <!-- Deep Charcoal Rose -->
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="1" />
+      <stop offset="100%" stop-color="#FCEEF2" stop-opacity="0.8" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Outer smooth squircle container -->
+  <rect width="100" height="100" rx="28" fill="url(#bg)" />
+  
+  <!-- The 'S' Mark -->
+  <path 
+    d="M 68 32 C 68 32 60 25 50 25 C 38 25 32 30 32 38 C 32 48 44 50 50 52 C 58 54 68 57 68 66 C 68 76 60 81 50 81 C 38 81 32 74 32 74" 
+    fill="none" 
+    stroke="url(#glow)" 
+    stroke-width="12" 
+    stroke-linecap="round" 
+    stroke-linejoin="round"
+  />
+
+  <!-- The 'Execution/Graph' Accent -->
+  <circle cx="68" cy="32" r="6" fill="#FFFFFF" />
+  <circle cx="32" cy="74" r="6" fill="#FFFFFF" />
+</svg>

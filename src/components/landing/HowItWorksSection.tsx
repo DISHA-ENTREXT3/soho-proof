@@ -37,7 +37,7 @@ const HowItWorksSection = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: false, amount: 0.1 }}
           className="text-center mb-16"
         >
           <span className="text-xs uppercase tracking-widest text-primary font-medium">Process</span>
@@ -55,22 +55,37 @@ const HowItWorksSection = () => {
               key={step.step}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ once: false, amount: 0.1 }}
               transition={{ delay: i * 0.15, duration: 0.5 }}
-              className="relative"
+              whileHover={{ 
+                scale: 1.05,
+                transition: { duration: 0.3, ease: "easeOut" }
+              }}
+              className="group relative h-full"
             >
-              <div className="glass p-6 h-full">
-                <span className="text-5xl font-heading font-bold text-primary/10 absolute top-4 right-4">
+              <div className="glass p-8 h-full relative overflow-hidden transition-shadow hover:shadow-2xl hover:shadow-primary/10 border-border/50 hover:border-primary/40">
+                {/* Theme Overlay */}
+                <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                
+                <span className="text-5xl font-heading font-bold text-primary/10 absolute top-4 right-4 group-hover:text-primary/20 transition-colors">
                   {step.step}
                 </span>
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                  <step.icon size={20} className="text-primary" />
+                
+                <div className="relative z-10">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
+                    <step.icon size={24} className="text-primary" />
+                  </div>
+                  <h3 className="font-heading font-bold text-xl mb-3 text-foreground group-hover:text-primary transition-colors">
+                    {step.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed group-hover:text-foreground/80 transition-colors">
+                    {step.description}
+                  </p>
+                  <div className="mt-6 w-8 h-1 bg-border group-hover:bg-primary group-hover:w-full transition-all duration-500" />
                 </div>
-                <h3 className="font-heading font-semibold text-lg mb-2 text-foreground">{step.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
               </div>
               {i < steps.length - 1 && (
-                <div className="hidden lg:block absolute top-1/2 -right-3 w-6 h-px bg-border" />
+                <div className="hidden lg:block absolute top-1/2 -right-3 w-6 h-px bg-border group-hover:hidden transition-all" />
               )}
             </motion.div>
           ))}

@@ -9,7 +9,7 @@ const CTASection = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: false, amount: 0.1 }}
           className="glass p-12 md:p-16 text-center glow-primary relative overflow-hidden"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 pointer-events-none" />

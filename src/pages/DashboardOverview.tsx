@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
 import { Trophy, Swords, Star, Flame, TrendingUp, Zap } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
 const stats = [
@@ -63,11 +65,18 @@ const DashboardOverview = () => {
   return (
     <div className="space-y-6 max-w-7xl">
       {/* Header */}
-      <div>
-        <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground">
-          Welcome back, <span className="gradient-text">John</span>
-        </h1>
-        <p className="text-muted-foreground text-sm mt-1">Here's your performance snapshot.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground">
+            Welcome back, <span className="gradient-text">John</span>
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">Here's your performance snapshot.</p>
+        </div>
+        <Link to="/profile/alex-rivera">
+          <Button variant="outline" className="border-border text-foreground hover:bg-secondary h-11 px-6">
+            View Public Profile
+          </Button>
+        </Link>
       </div>
 
       {/* Stats Grid */}

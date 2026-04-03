@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { mockChallenges, mockSubmissions } from "@/data/mockChallenges";
+import { useChallenge } from "@/hooks/use-challenges";
 import type { ChallengeCategory, ChallengeStatus } from "@/types/challenge";
 import { toast } from "@/hooks/use-toast";
 
@@ -45,15 +45,27 @@ const submissionStatusIcons = {
 };
 
 const ChallengeDetail = () => {
-  const { id } = useParams();
-  const challenge = mockChallenges.find((c) => c.id === id);
-  const submissions = mockSubmissions.filter((s) => s.challengeId === id);
+  const { id } = useParams<{ id: string }>();
+  const { data: challenge, isLoading, isError } = useChallenge(id);
+  
+  // For now, we'll keep submissions as they are or fetch them if needed
+  // In a real app, submissions would be part of the challenge detail response
+  const submissions = challenge?.submissions || [];
 
   const [submissionSummary, setSubmissionSummary] = useState("");
   const [submissionLink, setSubmissionLink] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-  if (!challenge) {
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl space-y-6 animate-pulse">
+        <div className="h-4 w-32 bg-secondary rounded" />
+        <div className="glass h-[400px] bg-secondary/20" />
+      </div>
+    );
+  }
+
+  if (isError || !challenge) {
     return (
       <div className="max-w-3xl">
         <Link to="/dashboard/challenges" className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4">
@@ -61,7 +73,7 @@ const ChallengeDetail = () => {
         </Link>
         <div className="glass p-12 text-center">
           <AlertCircle size={24} className="text-muted-foreground mx-auto mb-3" />
-          <p className="text-muted-foreground">Challenge not found.</p>
+          <p className="text-muted-foreground">{isError ? "Error loading challenge." : "Challenge not found."}</p>
         </div>
       </div>
     );

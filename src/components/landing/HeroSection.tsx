@@ -1,16 +1,14 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import HeroScene from "@/components/HeroScene";
+import { InfiniteGrid } from "@/components/ui/infinite-grid";
+import { SocialLinks } from "@/components/ui/SocialLinks";
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      <HeroScene />
-
-      {/* Gradient overlays */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/60 to-background pointer-events-none" />
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-transparent">
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/20 to-background pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-background via-background/60 to-transparent pointer-events-none" />
 
       <div className="container mx-auto px-6 relative z-10 text-center">
         <motion.div
@@ -55,13 +53,17 @@ const HeroSection = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1 }}
-            className="mt-16 flex items-center justify-center gap-8 text-sm text-muted-foreground"
+            className="mt-16 flex flex-col items-center justify-center gap-6"
           >
-            <span>500+ Challenges</span>
-            <span className="w-1 h-1 rounded-full bg-muted-foreground" />
-            <span>2,000+ Builders</span>
-            <span className="w-1 h-1 rounded-full bg-muted-foreground" />
-            <span>$1M+ Awarded</span>
+            <div className="flex items-center justify-center gap-8 text-sm text-muted-foreground">
+              <span>500+ Challenges</span>
+              <span className="w-1 h-1 rounded-full bg-muted-foreground" />
+              <span>2,000+ Builders</span>
+              <span className="w-1 h-1 rounded-full bg-muted-foreground" />
+              <span>$1M+ Awarded</span>
+            </div>
+            
+            <SocialLinks />
           </motion.div>
         </motion.div>
       </div>

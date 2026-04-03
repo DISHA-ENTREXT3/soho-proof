@@ -18,6 +18,7 @@ export interface Challenge {
   founderAvatar: string;
   companyName: string;
   scoringCriteria: ScoringCriterion[];
+  submissions?: Submission[];
   requirements: string[];
   createdAt: string;
 }

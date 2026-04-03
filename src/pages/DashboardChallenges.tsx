@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
-import { mockChallenges } from "@/data/mockChallenges";
+import { useChallenges } from "@/hooks/use-challenges";
 import {
   CATEGORIES,
   STATUSES,
@@ -53,15 +53,18 @@ const DashboardChallenges = () => {
   const [selectedStatus, setSelectedStatus] = useState<ChallengeStatus | "All">("All");
   const [selectedDifficulty, setSelectedDifficulty] = useState<ChallengeDifficulty | "All">("All");
 
+  const { data: challenges, isLoading, isError } = useChallenges();
+
   const filtered = useMemo(() => {
-    return mockChallenges.filter((c) => {
+    if (!challenges) return [];
+    return challenges.filter((c) => {
       if (search && !c.title.toLowerCase().includes(search.toLowerCase()) && !c.description.toLowerCase().includes(search.toLowerCase())) return false;
       if (selectedCategory !== "All" && c.category !== selectedCategory) return false;
       if (selectedStatus !== "All" && c.status !== selectedStatus) return false;
       if (selectedDifficulty !== "All" && c.difficulty !== selectedDifficulty) return false;
       return true;
     });
-  }, [search, selectedCategory, selectedStatus, selectedDifficulty]);
+  }, [challenges, search, selectedCategory, selectedStatus, selectedDifficulty]);
 
   const daysLeft = (deadline: string) => {
     const diff = Math.ceil((new Date(deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
@@ -165,7 +168,17 @@ const DashboardChallenges = () => {
       <p className="text-sm text-muted-foreground">{filtered.length} challenge{filtered.length !== 1 ? "s" : ""} found</p>
 
       {/* Challenge Cards */}
-      {filtered.length === 0 ? (
+      {isLoading ? (
+        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="glass p-5 h-[230px] animate-pulse bg-secondary/20" />
+          ))}
+        </div>
+      ) : isError ? (
+        <div className="glass p-12 text-center">
+          <p className="text-destructive font-medium">Failed to load challenges. Is the server running?</p>
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="glass p-12 text-center">
           <p className="text-muted-foreground">No challenges match your filters.</p>
         </div>
@@ -208,15 +221,22 @@ const DashboardChallenges = () => {
                   </div>
 
                   <div className="flex items-center justify-between pt-3 border-t border-border">
-                    <div className="flex items-center gap-2">
+                    <button 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        window.location.href = "/profile/jane-cooper";
+                      }}
+                      className="flex items-center gap-2 hover:bg-secondary/50 rounded-lg p-1 -m-1 transition-colors"
+                    >
                       <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center">
                         <span className="text-[10px] font-medium text-foreground">{challenge.founderAvatar}</span>
                       </div>
-                      <div>
-                        <p className="text-xs text-foreground">{challenge.founderName}</p>
+                      <div className="text-left">
+                        <p className="text-xs text-foreground group-hover/profile:text-primary transition-colors">{challenge.founderName}</p>
                         <p className="text-[10px] text-muted-foreground">{challenge.companyName}</p>
                       </div>
-                    </div>
+                    </button>
                     <span className="text-sm font-heading font-semibold text-primary">{challenge.prize}</span>
                   </div>
                 </div>

@@ -32,7 +32,7 @@ const TestimonialsSection = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: false, amount: 0.1 }}
           className="text-center"
         >
           <span className="text-xs uppercase tracking-widest text-primary font-medium">Testimonials</span>

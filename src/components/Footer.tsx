@@ -1,8 +1,10 @@
+import { SocialLinks } from "@/components/ui/SocialLinks";
+
 const Footer = () => {
   return (
     <footer className="border-t border-border py-12 px-6">
       <div className="container mx-auto">
-        <div className="grid md:grid-cols-4 gap-8">
+        <div className="grid md:grid-cols-4 gap-8 mb-12">
           <div>
             <div className="flex items-center gap-2 mb-4">
               <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
@@ -44,7 +46,11 @@ const Footer = () => {
           ))}
         </div>
 
-        <div className="border-t border-border mt-10 pt-6 text-center text-xs text-muted-foreground">
+        <div className="flex justify-center border-t border-border pt-8 pb-4">
+          <SocialLinks />
+        </div>
+
+        <div className="text-center text-xs text-muted-foreground">
           © {new Date().getFullYear()} Soho Space. All rights reserved.
         </div>
       </div>
