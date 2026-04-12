@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/lib/AuthContext";
 import {
   Sidebar,
   SidebarContent,
@@ -49,6 +50,7 @@ export function DashboardSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const currentPath = location.pathname;
 
   // Strict check: if path starts with /dashboard/founder, we are in founder mode
@@ -60,8 +62,8 @@ export function DashboardSidebar() {
       <SidebarContent>
         <div className="p-4">
           <a href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/20">
-              <span className="font-heading font-bold text-primary-foreground text-sm">S</span>
+            <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/20">
+              <img src="/logo.png" alt="Soho Space Logo" className="w-full h-full object-cover" />
             </div>
             {!collapsed && (
               <span className="font-heading font-bold text-foreground tracking-tight">Soho Space</span>
@@ -169,13 +171,16 @@ export function DashboardSidebar() {
 
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <NavLink 
-                to="/auth" 
+              <button 
+                onClick={async () => {
+                  await signOut();
+                  navigate("/");
+                }}
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors w-full"
               >
                 <LogOut className="h-4 w-4 flex-shrink-0" />
                 {!collapsed && <span className="text-sm">Log Out</span>}
-              </NavLink>
+              </button>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

@@ -1,0 +1,55 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Challenges Collection
+    match /challenges/{challengeId} {
+      // Anyone can view challenges
+      allow read: if true;
+      
+      // Only authenticated users can create challenges
+      allow create: if isAuthenticated();
+      
+      // Updates allowed if authenticated (e.g., for participant increment)
+      // In a strict setup, we'd check if request.resource.data only changed participation count
+      allow update: if isAuthenticated();
+      
+      // Deletion usually restricted to administrative or the creator
+      allow delete: if false; // Restrict for now
+    }
+
+    // Submissions Collection
+    match /submissions/{submissionId} {
+      // Anyone can view submissions (or restrict to authenticated)
+      allow read: if true;
+      
+      // Only authenticated users can submit work
+      allow create: if isAuthenticated();
+      
+      // Only the talent who submitted can update their work
+      allow update: if isAuthenticated() && isOwner(resource.data.talentId);
+      
+      allow delete: if false;
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      // Public profile view
+      allow read: if true;
+      
+      // Users can only write to their own profile
+      allow write: if isAuthenticated() && isOwner(userId);
+    }
+    
+    // Scoring Criteria (if nested, but they seem to be inside challenges document)
+  }
+}

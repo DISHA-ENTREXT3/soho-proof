@@ -1,17 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { Challenge } from "@/types/challenge";
-
-const API_URL = "http://localhost:3001/api";
+import { db } from "@/lib/firebase";
+import { collection, getDocs, doc, getDoc, query, orderBy } from "firebase/firestore";
 
 export const useChallenges = () => {
   return useQuery<Challenge[]>({
     queryKey: ["challenges"],
     queryFn: async () => {
-      const response = await fetch(`${API_URL}/challenges`);
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      return response.json();
+      const challengesCol = collection(db, "challenges");
+      const q = query(challengesCol, orderBy("createdAt", "desc"));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Challenge[];
     },
   });
 };
@@ -21,11 +23,17 @@ export const useChallenge = (id: string | undefined) => {
     queryKey: ["challenge", id],
     queryFn: async () => {
       if (!id) throw new Error("Challenge ID is required");
-      const response = await fetch(`${API_URL}/challenges/${id}`);
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
+      const docRef = doc(db, "challenges", id);
+      const docSnap = await getDoc(docRef);
+      
+      if (!docSnap.exists()) {
+        throw new Error("Challenge not found");
       }
-      return response.json();
+      
+      return {
+        id: docSnap.id,
+        ...docSnap.data()
+      } as Challenge;
     },
     enabled: !!id,
   });

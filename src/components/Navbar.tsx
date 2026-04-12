@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/use-auth";
 
 const navLinks = [
   { label: "Features", href: "/#features", isAnchor: true },
@@ -16,6 +17,8 @@ import { ModeToggle } from "@/components/ui/mode-toggle";
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <motion.nav
@@ -26,8 +29,8 @@ const Navbar = () => {
     >
       <div className="container mx-auto flex items-center justify-between h-16 px-6">
         <a href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="font-heading font-bold text-primary-foreground text-sm">S</span>
+          <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center shadow-lg shadow-primary/10">
+            <img src="/logo.png" alt="Soho Space" className="w-full h-full object-cover" />
           </div>
           <span className="font-heading font-bold text-lg text-foreground">
             Soho Space
@@ -58,17 +61,33 @@ const Navbar = () => {
 
         <div className="hidden md:flex items-center gap-3">
           <ModeToggle />
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-muted-foreground hover:text-foreground"
-            onClick={() => window.location.href = "/auth"}
-          >
-            Log In
-          </Button>
-          <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-            Get Started
-          </Button>
+          {user ? (
+            <Button 
+              size="sm" 
+              className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20"
+              onClick={() => navigate("/dashboard")}
+            >
+              Go to Dashboard
+            </Button>
+          ) : (
+            <>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-muted-foreground hover:text-foreground"
+                onClick={() => navigate("/auth")}
+              >
+                Log In
+              </Button>
+              <Button 
+                size="sm" 
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+                onClick={() => navigate("/auth")}
+              >
+                Get Started
+              </Button>
+            </>
+          )}
         </div>
 
         <div className="md:hidden flex items-center gap-3">
@@ -113,8 +132,14 @@ const Navbar = () => {
                 )
               ))}
               <div className="flex flex-col gap-2 pt-4 border-t border-border">
-                <Button variant="ghost" size="sm" onClick={() => window.location.href = "/auth"}>Log In</Button>
-                <Button size="sm" className="bg-primary text-primary-foreground" onClick={() => window.location.href = "/auth"}>Get Started</Button>
+                {user ? (
+                  <Button size="sm" className="bg-primary text-primary-foreground" onClick={() => { setMobileOpen(false); navigate("/dashboard"); }}>Go to Dashboard</Button>
+                ) : (
+                  <>
+                    <Button variant="ghost" size="sm" onClick={() => { setMobileOpen(false); navigate("/auth"); }}>Log In</Button>
+                    <Button size="sm" className="bg-primary text-primary-foreground" onClick={() => { setMobileOpen(false); navigate("/auth"); }}>Get Started</Button>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>

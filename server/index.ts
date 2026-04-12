@@ -1,12 +1,21 @@
 import express from "express";
 import cors from "cors";
-import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import dotenv from "dotenv";
+import * as admin from "firebase-admin";
 
 dotenv.config();
 
-const prisma = new PrismaClient();
+// Initialize Firebase Admin
+// Note: In production, provide the service account key
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.applicationDefault(), // or admin.credential.cert(serviceAccount)
+    databaseURL: process.env.FIREBASE_DATABASE_URL
+  });
+}
+
+const db = admin.firestore();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -21,12 +30,12 @@ const ChallengeSchema = z.object({
   difficulty: z.string(),
   xpReward: z.number().int().positive(),
   prize: z.string(),
-  deadline: z.string().transform((str) => new Date(str)),
+  deadline: z.string().transform((str) => new Date(str).toISOString()),
   maxParticipants: z.number().int().positive(),
   founderName: z.string(),
   founderAvatar: z.string(),
   companyName: z.string(),
-  requirements: z.array(z.string()).transform((arr) => JSON.stringify(arr)),
+  requirements: z.array(z.string()),
   scoringCriteria: z.array(z.object({
     name: z.string(),
     weight: z.number().int().positive(),
@@ -34,32 +43,19 @@ const ChallengeSchema = z.object({
   }))
 });
 
-const SubmissionSchema = z.object({
-  challengeId: z.string(),
-  talentName: z.string(),
-  talentAvatar: z.string(),
-  summary: z.string(),
-  link: z.string().url(),
-});
-
 // --- Routes ---
 
 // Get all challenges
 app.get("/api/challenges", async (req, res) => {
   try {
-    const challenges = await prisma.challenge.findMany({
-      include: { scoringCriteria: true },
-      orderBy: { createdAt: "desc" }
-    });
-    
-    // Parse requirements back to array
-    const parsedChallenges = challenges.map(c => ({
-      ...c,
-      requirements: JSON.parse(c.requirements as string)
+    const snapshot = await db.collection("challenges").orderBy("createdAt", "desc").get();
+    const challenges = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
     }));
-    
-    res.json(parsedChallenges);
+    res.json(challenges);
   } catch (error) {
+    console.error("GET /api/challenges error:", error);
     res.status(500).json({ error: "Failed to fetch challenges" });
   }
 });
@@ -68,23 +64,27 @@ app.get("/api/challenges", async (req, res) => {
 app.get("/api/challenges/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    const challenge = await prisma.challenge.findUnique({
-      where: { id },
-      include: { 
-        scoringCriteria: true,
-        submissions: {
-          orderBy: { submittedAt: "desc" }
-        }
-      }
-    });
+    const doc = await db.collection("challenges").doc(id).get();
+    if (!doc.exists) return res.status(404).json({ error: "Challenge not found" });
     
-    if (!challenge) return res.status(404).json({ error: "Challenge not found" });
-    
+    // Fetch submissions as well
+    const submissionsSnapshot = await db.collection("submissions")
+      .where("challengeId", "==", id)
+      .orderBy("submittedAt", "desc")
+      .get();
+      
+    const submissions = submissionsSnapshot.docs.map(s => ({
+      id: s.id,
+      ...s.data()
+    }));
+
     res.json({
-      ...challenge,
-      requirements: JSON.parse(challenge.requirements as string)
+      id: doc.id,
+      ...doc.data(),
+      submissions
     });
   } catch (error) {
+    console.error(`GET /api/challenges/${id} error:`, error);
     res.status(500).json({ error: "Failed to fetch challenge" });
   }
 });
@@ -93,22 +93,19 @@ app.get("/api/challenges/:id", async (req, res) => {
 app.post("/api/challenges", async (req, res) => {
   try {
     const validatedData = ChallengeSchema.parse(req.body);
-    const { scoringCriteria, ...challengeData } = validatedData;
-    
-    const challenge = await prisma.challenge.create({
-      data: {
-        ...challengeData,
-        scoringCriteria: {
-          create: scoringCriteria
-        }
-      }
+    const challengeRef = await db.collection("challenges").add({
+      ...validatedData,
+      currentParticipants: 0,
+      status: "Open",
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
     
-    res.status(201).json(challenge);
+    res.status(201).json({ id: challengeRef.id });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.errors });
+      return res.status(400).json({ error: error.issues });
     }
+    console.error("POST /api/challenges error:", error);
     res.status(500).json({ error: "Failed to create challenge" });
   }
 });
@@ -116,40 +113,29 @@ app.post("/api/challenges", async (req, res) => {
 // Submit work
 app.post("/api/submissions", async (req, res) => {
   try {
-    const validatedData = SubmissionSchema.parse(req.body);
+    const { challengeId, ...submissionData } = req.body;
     
-    const submission = await prisma.submission.create({
-      data: validatedData
+    const batch = db.batch();
+    
+    const submissionRef = db.collection("submissions").doc();
+    batch.set(submissionRef, {
+      challengeId,
+      ...submissionData,
+      submittedAt: admin.firestore.FieldValue.serverTimestamp(),
+      status: "Pending"
     });
     
-    // Increment challenge participant count
-    await prisma.challenge.update({
-      where: { id: validatedData.challengeId },
-      data: { currentParticipants: { increment: 1 } }
+    const challengeRef = db.collection("challenges").doc(challengeId);
+    batch.update(challengeRef, {
+      currentParticipants: admin.firestore.FieldValue.increment(1)
     });
     
-    res.status(201).json(submission);
+    await batch.commit();
+    
+    res.status(201).json({ id: submissionRef.id });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.errors });
-    }
+    console.error("POST /api/submissions error:", error);
     res.status(500).json({ error: "Failed to submit work" });
-  }
-});
-
-// Get user profile
-app.get("/api/user/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    const user = await prisma.user.findUnique({
-      where: { id },
-      include: { submissions: { include: { challenge: true } } }
-    });
-    
-    if (!user) return res.status(404).json({ error: "User not found" });
-    res.json(user);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch user" });
   }
 });
 

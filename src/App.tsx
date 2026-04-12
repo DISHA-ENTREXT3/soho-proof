@@ -23,6 +23,9 @@ import Pricing from "./pages/Pricing.tsx";
 const queryClient = new QueryClient();
 
 import { ThemeProvider } from "@/components/theme-provider";
+import { AuthProvider } from "@/lib/AuthContext";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import UpvoteWidget from "./components/UpvoteWidget";
 
 const App = () => (
   <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
@@ -31,34 +34,40 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/login" element={<Auth />} />
-            <Route path="/dashboard" element={<DashboardLayout />}>
-              {/* Talent Routes */}
-              <Route index element={<DashboardOverview />} />
-              <Route path="challenges" element={<DashboardChallenges />} />
-              <Route path="challenges/:id" element={<ChallengeDetail />} />
-              <Route path="founders" element={<FoundersDirectory />} />
-              <Route path="leaderboard" element={<DashboardLeaderboard />} />
-              <Route path="reputation" element={<DashboardReputation />} />
-              <Route path="settings" element={<DashboardSettings />} />
+          <AuthProvider>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/login" element={<Auth />} />
+              <Route element={<ProtectedRoute />}>
+                <Route path="/dashboard" element={<DashboardLayout />}>
+                  {/* Talent Routes */}
+                  <Route index element={<DashboardOverview />} />
+                  <Route path="challenges" element={<DashboardChallenges />} />
+                  <Route path="challenges/:id" element={<ChallengeDetail />} />
+                  <Route path="founders" element={<FoundersDirectory />} />
+                  <Route path="leaderboard" element={<DashboardLeaderboard />} />
+                  <Route path="reputation" element={<DashboardReputation />} />
+                  <Route path="settings" element={<DashboardSettings />} />
 
-              {/* Founder Routes (Strictly prefixed) */}
-              <Route path="founder">
-                <Route index element={<FounderOverview />} />
-                <Route path="profile" element={<FounderProfileCreation />} />
-                <Route path="challenges" element={<DashboardChallenges />} />
-                <Route path="challenges/create" element={<CreateChallenge />} />
-                <Route path="founders" element={<FoundersDirectory />} />
-                <Route path="settings" element={<DashboardSettings />} />
+                  {/* Founder Routes (Strictly prefixed) */}
+                  <Route path="founder">
+                    <Route index element={<FounderOverview />} />
+                    <Route path="profile" element={<FounderProfileCreation />} />
+                    <Route path="challenges" element={<DashboardChallenges />} />
+                    <Route path="challenges/create" element={<CreateChallenge />} />
+                    <Route path="founders" element={<FoundersDirectory />} />
+                    <Route path="settings" element={<DashboardSettings />} />
+                  </Route>
+                </Route>
               </Route>
-            </Route>
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/profile/:id" element={<PublicProfile />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/profile/:id" element={<PublicProfile />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <UpvoteWidget />
+          </AuthProvider>
+
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

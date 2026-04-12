@@ -22,6 +22,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useChallenge } from "@/hooks/use-challenges";
 import type { ChallengeCategory, ChallengeStatus } from "@/types/challenge";
 import { toast } from "@/hooks/use-toast";
+import { db } from "@/lib/firebase";
+import { addDoc, collection, doc, updateDoc, increment, serverTimestamp } from "firebase/firestore";
+import { useAuth } from "@/hooks/use-auth";
 
 const categoryColors: Record<ChallengeCategory, string> = {
   Tech: "bg-blue-500/20 text-blue-400",
@@ -46,6 +49,7 @@ const submissionStatusIcons = {
 
 const ChallengeDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const { data: challenge, isLoading, isError } = useChallenge(id);
   
   // For now, we'll keep submissions as they are or fetch them if needed
@@ -82,14 +86,46 @@ const ChallengeDetail = () => {
   const daysLeft = Math.max(0, Math.ceil((new Date(challenge.deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
   const participationPercent = (challenge.currentParticipants / challenge.maxParticipants) * 100;
 
-  const handleSubmit = (e: React.FormEvent) => {
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!submissionSummary || !submissionLink) {
       toast({ title: "Missing fields", description: "Please provide a summary and link.", variant: "destructive" });
       return;
     }
-    setSubmitted(true);
-    toast({ title: "Submission sent!", description: "Your work has been submitted for review." });
+    
+    if (!user) {
+      toast({ title: "Error", description: "You must be logged in to submit work.", variant: "destructive" });
+      return;
+    }
+
+    try {
+      // 1. Add submission
+      await addDoc(collection(db, "submissions"), {
+        challengeId: id,
+        talentId: user.uid,
+        talentName: user.displayName || "Anonymous",
+        talentAvatar: user.displayName?.[0] || "U",
+        summary: submissionSummary,
+        link: submissionLink,
+        submittedAt: new Date().toISOString(),
+        status: "Pending",
+      });
+
+      // 2. Increment participant count
+      if (id) {
+        const challengeRef = doc(db, "challenges", id);
+        await updateDoc(challengeRef, {
+          currentParticipants: increment(1)
+        });
+      }
+
+      setSubmitted(true);
+      toast({ title: "Submission sent!", description: "Your work has been submitted for review." });
+    } catch (error) {
+      console.error("Submission error:", error);
+      toast({ title: "Submission failed", description: "Could not submit your work. Please try again.", variant: "destructive" });
+    }
   };
 
   return (

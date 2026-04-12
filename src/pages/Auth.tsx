@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -20,25 +20,66 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { InfiniteGrid } from "@/components/ui/infinite-grid";
+import { auth } from "@/lib/firebase";
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  updateProfile,
+  signInWithPopup,
+  GithubAuthProvider,
+  GoogleAuthProvider
+} from "firebase/auth";
+import { useAuth } from "@/hooks/use-auth";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const { user } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
+  
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
-    // Simulate auth logic
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      if (activeTab === "register") {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(userCredential.user, {
+          displayName: name
+        });
+        toast({
+          title: "Account created!",
+          description: "Welcome to Soho Space!",
+        });
+        navigate("/dashboard");
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+        toast({
+          title: "Welcome back!",
+          description: "Redirecting to dashboard...",
+        });
+        navigate("/dashboard");
+      }
+    } catch (error: unknown) {
+      const err = error as Error;
       toast({
-        title: activeTab === "login" ? "Welcome back!" : "Account created!",
-        description: "Redirecting you to the dashboard...",
+        title: "Authentication error",
+        description: err.message || "Failed to authenticate. Please try again.",
+        variant: "destructive",
       });
-      navigate("/dashboard");
-    }, 1500);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -66,8 +107,8 @@ const Auth = () => {
               animate={{ y: 0 }}
               className="flex justify-center mb-4"
             >
-              <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
-                <span className="font-heading font-bold text-primary-foreground text-xl">S</span>
+              <div className="w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center shadow-lg shadow-primary/30">
+                <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
               </div>
             </motion.div>
             <CardTitle className="text-3xl font-heading font-bold gradient-text">Soho Space</CardTitle>
@@ -89,7 +130,15 @@ const Auth = () => {
                     <Label htmlFor="email">Email</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input id="email" placeholder="name@example.com" className="pl-10 bg-background/50 border-border" required />
+                      <Input 
+                        id="email" 
+                        type="email"
+                        placeholder="name@example.com" 
+                        className="pl-10 bg-background/50 border-border" 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required 
+                      />
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -99,7 +148,14 @@ const Auth = () => {
                     </div>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input id="password" type="password" className="pl-10 bg-background/50 border-border" required />
+                      <Input 
+                        id="password" 
+                        type="password" 
+                        className="pl-10 bg-background/50 border-border" 
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required 
+                      />
                     </div>
                   </div>
                   
@@ -114,15 +170,37 @@ const Auth = () => {
                 <form onSubmit={handleAuth} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="reg-name">Full Name</Label>
-                    <Input id="reg-name" placeholder="John Doe" className="bg-background/50 border-border" required />
+                    <Input 
+                      id="reg-name" 
+                      placeholder="John Doe" 
+                      className="bg-background/50 border-border" 
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required 
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="reg-email">Email</Label>
-                    <Input id="reg-email" type="email" placeholder="name@example.com" className="bg-background/50 border-border" required />
+                    <Input 
+                      id="reg-email" 
+                      type="email" 
+                      placeholder="name@example.com" 
+                      className="bg-background/50 border-border" 
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required 
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="reg-password">Password</Label>
-                    <Input id="reg-password" type="password" className="bg-background/50 border-border" required />
+                    <Input 
+                      id="reg-password" 
+                      type="password" 
+                      className="bg-background/50 border-border" 
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required 
+                    />
                   </div>
                   
                   <Button type="submit" className="w-full bg-primary hover:bg-primary/90 h-11" disabled={loading}>
