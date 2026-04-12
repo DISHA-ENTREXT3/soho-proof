@@ -9,8 +9,14 @@ dotenv.config();
 // Initialize Firebase Admin
 // Note: In production, provide the service account key
 if (!admin.apps.length) {
+  const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT 
+    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT) 
+    : admin.credential.applicationDefault();
+
   admin.initializeApp({
-    credential: admin.credential.applicationDefault(), // or admin.credential.cert(serviceAccount)
+    credential: process.env.FIREBASE_SERVICE_ACCOUNT 
+      ? admin.credential.cert(serviceAccount) 
+      : serviceAccount,
     databaseURL: process.env.FIREBASE_DATABASE_URL
   });
 }
