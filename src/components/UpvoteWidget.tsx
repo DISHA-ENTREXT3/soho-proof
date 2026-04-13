@@ -13,34 +13,25 @@ export default function UpvoteWidget() {
   const email = user?.email;
 
   useEffect(() => {
-    // Cleanup existing script if it exists
+    // Only load the script if it's not already in the DOM
     const existingScript = document.querySelector('script[src*="upvote.entrext.com/widget.js"]');
-    if (existingScript) {
-      existingScript.remove();
+    
+    if (!existingScript) {
+      const script = document.createElement('script');
+      script.src = "https://upvote.entrext.com/widget.js";
+      script.async = true;
+      document.body.appendChild(script);
     }
 
-    // Proactive cleanup of existing floating elements
-    if (window.__upvote_cleanup) {
-      try {
-        window.__upvote_cleanup();
-      } catch (e) {
-        console.error('Upvote cleanup error:', e);
-      }
-    }
-
-    // Create and append the script
-    const script = document.createElement('script');
-    script.src = "https://upvote.entrext.com/widget.js";
-    script.async = true;
-    document.body.appendChild(script);
-
+    // The script has internal polling and mutation observers to handle 
+    // attribute changes and div remounts automatically.
+    
     return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-      if (window.__upvote_cleanup) window.__upvote_cleanup();
+      // Optional: We can call the cleanup function if we specifically want to hide it
+      // but usually for SPAs we just let it be and it will find the div again.
+      // if (window.__upvote_cleanup) window.__upvote_cleanup();
     };
-  }, [userId, email]);
+  }, []); // Only run once on mount
 
   return (
     <div 
