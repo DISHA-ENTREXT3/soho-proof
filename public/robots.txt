@@ -1,14 +1,14 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
 User-agent: *
 Allow: /
+Allow: /pricing
+Allow: /privacy
+Allow: /terms
+Allow: /cookies
+Allow: /disclaimer
+Allow: /profile/
+Disallow: /dashboard/
+Disallow: /onboarding/
+Disallow: /auth
+Disallow: /login
+
+Sitemap: https://sohospace.entrext.in/sitemap.xml

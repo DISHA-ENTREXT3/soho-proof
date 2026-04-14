@@ -10,6 +10,7 @@ const navLinks = [
   { label: "Features", href: "/#features", isAnchor: true },
   { label: "How It Works", href: "/#how-it-works", isAnchor: true },
   { label: "Pricing", href: "/pricing", isAnchor: false },
+  { label: "Blogs", href: "/blogs", isAnchor: false },
   { label: "FAQ", href: "/#faq", isAnchor: true },
 ];
 

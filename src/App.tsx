@@ -25,6 +25,8 @@ import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import TermsConditions from "./pages/TermsConditions.tsx";
 import CookiePolicy from "./pages/CookiePolicy.tsx";
 import DisclaimerRefund from "./pages/DisclaimerRefund.tsx";
+import BlogList from "./pages/BlogList.tsx";
+import BlogDetail from "./pages/BlogDetail.tsx";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +52,8 @@ const App = () => (
               <Route path="/terms" element={<TermsConditions />} />
               <Route path="/cookies" element={<CookiePolicy />} />
               <Route path="/disclaimer" element={<DisclaimerRefund />} />
+              <Route path="/blogs" element={<BlogList />} />
+              <Route path="/blogs/:slug" element={<BlogDetail />} />
 
               {/* Onboarding — requires auth, no role guard, skips onboarding check */}
               <Route element={<ProtectedRoute />}>

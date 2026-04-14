@@ -14,6 +14,7 @@ const COLUMNS = [
     title: "Company",
     links: [
       { label: "About",   to: "/#about" },
+      { label: "Blog",    to: "/blogs" },
       { label: "Contact", href: "mailto:business@entrext.in" },
     ],
   },
