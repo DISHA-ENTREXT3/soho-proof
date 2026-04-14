@@ -12,7 +12,7 @@ import {
   UserCircle,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import {
   Sidebar,
@@ -41,21 +41,24 @@ const founderItems = [
   { title: "Talent Discovery", url: "/dashboard/founder/founders", icon: Users },
 ];
 
-const bottomItems = [
-  { title: "Settings", url: "/dashboard/settings", icon: Settings },
-];
-
 export function DashboardSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const location = useLocation();
   const navigate = useNavigate();
-  const { signOut } = useAuth();
-  const currentPath = location.pathname;
+  const { user, signOut, role } = useAuth();
 
-  // Strict check: if path starts with /dashboard/founder, we are in founder mode
-  const isFounderMode = currentPath === "/dashboard/founder" || currentPath.startsWith("/dashboard/founder/");
+  // Role-based mode — driven by the Firestore role, not the URL
+  const isFounderMode = role === "founder";
   const mainItems = isFounderMode ? founderItems : talentItems;
+
+  // User initials for avatar
+  const displayName = user?.displayName ?? user?.email ?? "User";
+  const initials = displayName
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border bg-card/50">
@@ -70,6 +73,21 @@ export function DashboardSidebar() {
             )}
           </a>
         </div>
+
+        {/* User identity pill */}
+        {!collapsed && (
+          <div className="mx-3 mb-2 px-3 py-2 rounded-xl bg-secondary/40 border border-border flex items-center gap-3">
+            <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+              <span className="text-[10px] font-bold text-primary">{initials}</span>
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-foreground truncate">{displayName}</p>
+              <p className={`text-[10px] font-bold uppercase tracking-widest ${isFounderMode ? "text-accent" : "text-primary"}`}>
+                {isFounderMode ? "Founder" : "Builder"}
+              </p>
+            </div>
+          </div>
+        )}
 
         <SidebarGroup>
           <SidebarGroupLabel className="text-muted-foreground px-4 text-[10px] uppercase tracking-widest font-bold mb-2">
@@ -92,12 +110,13 @@ export function DashboardSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
-              
+
+              {/* Post Challenge — founder only CTA */}
               {isFounderMode && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <NavLink
-                      to="/dashboard/challenges/create"
+                      to="/dashboard/founder/challenges/create"
                       className="flex items-center gap-3 px-3 py-2 rounded-lg text-primary bg-primary/5 hover:bg-primary/10 transition-all border border-dashed border-primary/20 mt-2"
                     >
                       <PlusCircle className="h-4 w-4 flex-shrink-0" />
@@ -113,65 +132,45 @@ export function DashboardSidebar() {
 
       <SidebarFooter>
         <SidebarMenu className="gap-1">
-          {bottomItems.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild>
-                <NavLink
-                  to={item.url}
-                  end
-                  className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
-                  activeClassName="bg-primary/10 text-primary font-medium"
-                >
-                  <item.icon className="h-4 w-4 flex-shrink-0" />
-                  {!collapsed && <span className="text-sm">{item.title}</span>}
-                </NavLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-          
-          <div className="my-2 px-3">
-             <div className="h-px bg-border w-full" />
-          </div>
 
+          {/* Settings — shared route */}
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <button 
-                onClick={() => navigate(isFounderMode ? "/dashboard" : "/dashboard/founder")}
-                className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 w-full mb-2 ${
-                  isFounderMode 
-                  ? "bg-accent/10 text-accent hover:bg-accent/20 border border-accent/20" 
-                  : "bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20"
-                }`}
+              <NavLink
+                to="/dashboard/settings"
+                end
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
+                activeClassName="bg-primary/10 text-primary font-medium"
               >
-                {isFounderMode ? <Briefcase className="h-4 w-4" /> : <Building2 className="h-4 w-4" />}
-                {!collapsed && (
-                  <span className="text-xs font-bold uppercase tracking-wider">
-                    {isFounderMode ? "Switch to Talent" : "Founders Portal"}
-                  </span>
-                )}
-              </button>
+                <Settings className="h-4 w-4 flex-shrink-0" />
+                {!collapsed && <span className="text-sm">Settings</span>}
+              </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
+          <div className="my-2 px-3">
+            <div className="h-px bg-border w-full" />
+          </div>
+
+          {/* View Public Profile */}
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <NavLink 
-                 to={isFounderMode ? "/profile/jane-cooper" : "/profile/alex-rivera"}
+              <NavLink
+                to={user ? `/profile/${user.uid}` : "/auth"}
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors w-full"
               >
                 <UserCircle className="h-4 w-4 flex-shrink-0" />
                 {!collapsed && (
-                  <span className="text-sm">
-                    {isFounderMode ? "View Public Profile (Founder)" : "View Public Profile (Builder)"}
-                  </span>
+                  <span className="text-sm">View Public Profile</span>
                 )}
               </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
+          {/* Log Out */}
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <button 
+              <button
                 onClick={async () => {
                   await signOut();
                   navigate("/");

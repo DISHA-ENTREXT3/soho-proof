@@ -1,16 +1,39 @@
 import React, { useEffect, useState } from "react";
-import { auth } from "./firebase";
 import { onAuthStateChanged, User, signOut as firebaseSignOut } from "firebase/auth";
-import { AuthContext } from "./AuthContextType";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "./firebase";
+import { AuthContext, UserProfile } from "./AuthContextType";
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [role, setRole] = useState<"talent" | "founder" | null>(null);
+  const [profileData, setProfileData] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Listen for auth changes
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
+      
+      if (user) {
+        try {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            setRole(data.role as "talent" | "founder");
+            setProfileData(data as UserProfile);
+          } else {
+            // Default to talent if no doc exists (fallback)
+            setRole("talent");
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          setRole("talent");
+        }
+      } else {
+        setRole(null);
+        setProfileData(null);
+      }
+      
       setLoading(false);
     });
 
@@ -22,7 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signOut }}>
+    <AuthContext.Provider value={{ user, role, profileData, loading, signOut }}>
       {children}
     </AuthContext.Provider>
   );

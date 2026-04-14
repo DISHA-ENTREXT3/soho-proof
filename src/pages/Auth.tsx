@@ -37,14 +37,16 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const { user } = useAuth();
+  const [selectedRole, setSelectedRole] = useState<"talent" | "founder">("talent");
+  const { user, role: authRole } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) {
-      navigate("/dashboard");
+    if (user && authRole) {
+      // Redirect to the correct dashboard based on the authenticated user's role
+      navigate(authRole === "founder" ? "/dashboard/founder" : "/dashboard");
     }
-  }, [user, navigate]);
+  }, [user, authRole, navigate]);
   
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -57,18 +59,30 @@ const Auth = () => {
         await updateProfile(userCredential.user, {
           displayName: name
         });
+
+        // Store role in Firestore
+        const { doc, setDoc, serverTimestamp } = await import("firebase/firestore");
+        const { db } = await import("@/lib/firebase");
+        await setDoc(doc(db, "users", userCredential.user.uid), {
+          name,
+          email,
+          role: selectedRole,
+          createdAt: serverTimestamp()
+        });
+
         toast({
           title: "Account created!",
-          description: "Welcome to Soho Space!",
+          description: `Welcome to Soho Space as a ${selectedRole === "founder" ? "Founder" : "Talent"}!`,
         });
-        navigate("/dashboard");
+        // AuthProvider will detect the auth state change, fetch the role, and the useEffect above will handle redirect
+
       } else {
         await signInWithEmailAndPassword(auth, email, password);
         toast({
           title: "Welcome back!",
           description: "Redirecting to dashboard...",
         });
-        navigate("/dashboard");
+        // AuthProvider will detect the auth state change, fetch the role, and the useEffect above will handle redirect
       }
     } catch (error: unknown) {
       const err = error as Error;
@@ -203,8 +217,36 @@ const Auth = () => {
                     />
                   </div>
                   
-                  <Button type="submit" className="w-full bg-primary hover:bg-primary/90 h-11" disabled={loading}>
-                    {loading ? <Loader2 className="animate-spin mr-2" size={18} /> : "Create Account"}
+                  <div className="space-y-2 pt-2">
+                    <Label>I am joining as a:</Label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedRole("talent")}
+                        className={`flex items-center justify-center p-3 rounded-xl border-2 transition-all duration-200 ${
+                          selectedRole === "talent" 
+                          ? "border-primary bg-primary/10 text-primary shadow-lg shadow-primary/10" 
+                          : "border-border hover:border-primary/50 text-muted-foreground"
+                        }`}
+                      >
+                         Builder / Talent
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedRole("founder")}
+                        className={`flex items-center justify-center p-3 rounded-xl border-2 transition-all duration-200 ${
+                          selectedRole === "founder" 
+                          ? "border-primary bg-primary/10 text-primary shadow-lg shadow-primary/10" 
+                          : "border-border hover:border-primary/50 text-muted-foreground"
+                        }`}
+                      >
+                        Founder
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <Button type="submit" className="w-full bg-primary hover:bg-primary/90 h-11 mt-4" disabled={loading}>
+                    {loading ? <Loader2 className="animate-spin mr-2" size={18} /> : `Join as ${selectedRole === 'founder' ? 'Founder' : 'Talent'}`}
                     {!loading && <CheckCircle2 className="ml-2" size={18} />}
                   </Button>
                 </form>

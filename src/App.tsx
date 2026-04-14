@@ -41,24 +41,29 @@ const App = () => (
               <Route path="/login" element={<Auth />} />
               <Route element={<ProtectedRoute />}>
                 <Route path="/dashboard" element={<DashboardLayout />}>
-                  {/* Talent Routes */}
-                  <Route index element={<DashboardOverview />} />
-                  <Route path="challenges" element={<DashboardChallenges />} />
-                  <Route path="challenges/:id" element={<ChallengeDetail />} />
-                  <Route path="founders" element={<FoundersDirectory />} />
-                  <Route path="leaderboard" element={<DashboardLeaderboard />} />
-                  <Route path="reputation" element={<DashboardReputation />} />
+
+                  {/* Shared routes — accessible by any authenticated user */}
                   <Route path="settings" element={<DashboardSettings />} />
 
-                  {/* Founder Routes (Strictly prefixed) */}
-                  <Route path="founder">
+                  {/* Talent-only routes */}
+                  <Route element={<ProtectedRoute requiredRole="talent" />}>
+                    <Route index element={<DashboardOverview />} />
+                    <Route path="challenges" element={<DashboardChallenges />} />
+                    <Route path="challenges/:id" element={<ChallengeDetail />} />
+                    <Route path="founders" element={<FoundersDirectory />} />
+                    <Route path="leaderboard" element={<DashboardLeaderboard />} />
+                    <Route path="reputation" element={<DashboardReputation />} />
+                  </Route>
+
+                  {/* Founder-only routes */}
+                  <Route path="founder" element={<ProtectedRoute requiredRole="founder" />}>
                     <Route index element={<FounderOverview />} />
                     <Route path="profile" element={<FounderProfileCreation />} />
                     <Route path="challenges" element={<DashboardChallenges />} />
                     <Route path="challenges/create" element={<CreateChallenge />} />
                     <Route path="founders" element={<FoundersDirectory />} />
-                    <Route path="settings" element={<DashboardSettings />} />
                   </Route>
+
                 </Route>
               </Route>
               <Route path="/pricing" element={<Pricing />} />

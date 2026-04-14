@@ -1,9 +1,14 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 
-export const ProtectedRoute = () => {
-  const { user, loading } = useAuth();
+interface ProtectedRouteProps {
+  requiredRole?: "talent" | "founder";
+}
+
+export const ProtectedRoute = ({ requiredRole }: ProtectedRouteProps) => {
+  const { user, role, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -14,7 +19,13 @@ export const ProtectedRoute = () => {
   }
 
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/auth" replace state={{ from: location }} />;
+  }
+
+  if (requiredRole && role !== requiredRole) {
+    // Redirect to the correct dashboard if they are in the wrong place
+    const targetDashboard = role === "founder" ? "/dashboard/founder" : "/dashboard";
+    return <Navigate to={targetDashboard} replace />;
   }
 
   return <Outlet />;
