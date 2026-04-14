@@ -41,47 +41,55 @@ const BlogList = () => {
           </div>
 
           {/* Blog Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
             {filteredPosts.map((post, idx) => (
               <motion.article
                 key={post.id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                className="group glass p-5 rounded-3xl flex flex-col hover:border-primary/40 transition-all border-border/50"
+                transition={{ delay: idx * 0.05, duration: 0.5, ease: "easeOut" }}
+                className="group relative flex flex-col"
               >
-                <Link to={`/blogs/${post.slug}`} className="block overflow-hidden rounded-2xl mb-4 aspect-video">
+                <Link to={`/blogs/${post.slug}`} className="block relative overflow-hidden rounded-[2rem] mb-6 aspect-[16/10] shadow-xl">
                   <img
                     src={post.image1}
                     alt={post.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 </Link>
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded">
+
+                <div className="flex items-center gap-4 mb-4">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
                     {post.category}
                   </span>
-                  <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                    <Clock size={10} /> {post.readTime}
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold flex items-center gap-1.5">
+                    <Clock size={12} className="text-primary/60" /> {post.readTime}
                   </span>
                 </div>
-                <Link to={`/blogs/${post.slug}`}>
-                  <h2 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors leading-tight">
+
+                <Link to={`/blogs/${post.slug}`} className="block group/title">
+                  <h2 className="text-2xl font-bold mb-4 group-hover/title:text-primary transition-colors leading-[1.2] decoration-primary/30 underline-offset-4 group-hover/title:underline">
                     {post.title}
                   </h2>
                 </Link>
-                <p className="text-muted-foreground text-sm mb-6 line-clamp-3">
+
+                <p className="text-muted-foreground text-sm mb-8 line-clamp-2 leading-relaxed font-body">
                   {post.description}
                 </p>
-                <div className="mt-auto pt-4 border-t border-border flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-[10px] font-bold">
+
+                <div className="mt-auto pt-6 border-t border-border/50 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-secondary border border-border flex items-center justify-center text-xs font-bold text-foreground overflow-hidden">
                       {post.authorInitials}
                     </div>
-                    <span className="text-[10px] text-muted-foreground">{post.author}</span>
+                    <div>
+                      <p className="text-[11px] font-bold text-foreground leading-none mb-1">{post.author}</p>
+                      <p className="text-[9px] uppercase tracking-tighter text-muted-foreground font-semibold">Technical Lead</p>
+                    </div>
                   </div>
-                  <Link to={`/blogs/${post.slug}`} className="text-primary text-xs font-bold flex items-center gap-1">
-                    Read More <ArrowRight size={14} />
+                  <Link to={`/blogs/${post.slug}`} className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:bg-primary hover:border-primary hover:text-white transition-all duration-300">
+                    <ArrowRight size={18} />
                   </Link>
                 </div>
               </motion.article>

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -144,6 +144,26 @@
 
   .section-padding {
     @apply px-6 py-20 md:py-28 lg:py-32;
+  }
+
+  .prose h1, .prose h2, .prose h3 {
+    @apply font-heading text-foreground mt-0 mb-6;
+  }
+  
+  .prose p {
+    @apply font-body text-muted-foreground leading-relaxed mb-6;
+  }
+
+  .prose strong {
+    @apply text-foreground font-bold;
+  }
+
+  .prose blockquote {
+    @apply italic border-l-4 border-primary pl-6 my-10 bg-primary/5 py-4 rounded-r-xl;
+  }
+
+  .prose section {
+    @apply border border-border bg-card/40 p-8 md:p-12 rounded-[2.5rem] mb-16 shadow-sm;
   }
 }
 

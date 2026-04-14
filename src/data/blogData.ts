@@ -15,33 +15,42 @@ export interface BlogPost {
   faqs: { question: string; answer: string }[];
 }
 
-const generateExtremelyLongContent = (topic: string, subtopics: string[]) => {
-  let content = `<h2>The Evolution of ${topic}</h2>`;
-  content += `<p>The digital landscape is undergoing a tectonic shift. As we navigate the complexities of 2026, the traditional methods of evaluating expertise and professional worth are being dismantled. At the heart of this transformation is the concept of <strong>Proof-of-Execution</strong>—a paradigm that Soho Space has pioneered to bridge the gap between theoretical knowledge and practical application.</p>`;
-  content += `<p>In this deep dive, we explore how ${topic} is not just a trend, but a fundamental restructuring of the global labor market. We are moving from a "credential-first" world to a "capacity-first" world. This transition is driven by the democratization of information and the rise of autonomous building tools, which place a premium on the one thing that cannot be faked: demonstrated results.</p>`;
-
-  for (const sub of subtopics) {
-    content += `<h3>The Strategic Importance of ${sub}</h3>`;
-    content += `<p>When analyzing ${sub}, we must consider its impact on the micro and macro levels. On a micro level, ${sub} allows for immediate feedback loops. A builder doesn't have to wait for an annual review to know they are providing value; they see it in their XP gains and challenge wins. On a macro level, this creates a more efficient market where talent is allocated based on real-time demand and proven skill sets rather than static resumes.</p>`;
-    content += `<h4>Breaking Down the ${sub} Matrix</h4>`;
-    content += `<p>Developing a robust strategy for ${sub} requires a multi-faceted approach. First, you must define the success metrics. In the Soho Space ecosystem, this means creating challenges that are not just difficult, but relevant. A challenge that tests a builder's ability to optimize a React component for low-bandwidth environments is infinitely more valuable than a generic coding puzzle.</p>`;
-    content += `<p>Second, the implementation of ${sub} must be scalable. This is why we've built the Alpha Builder architecture to support thousands of parallel evaluations. By utilizing automated grading scripts alongside human oversight, we ensure that every contributor to ${sub} receives a fair and standardized assessment. This scalability is what allows startups to hire at the speed of light without sacrificing quality.</p>`;
-    content += `<p>Third, we must look at the long-term sustainability of ${sub}. It is not enough to execute once; one must maintain a high level of performance over time. This is where the concept of "Reputation Decay" and "Skill Staking" comes into play. Builders who consistently excel in ${sub} build a moat around their professional identity that is immune to the noise of traditional job boards.</p>`;
-    content += `<p>Furthermore, the data collected from ${sub} interactions provides founders with an unprecedented level of depth. Instead of seeing a "B.S. in Computer Science," they see a heatmap of real-world problem-solving. They see how a builder handles technical debt, how they document their work, and how they respond to evaluation criteria. This is the difference between hiring a person and hiring a proven capability.</p>`;
-    content += `<p>As we continue to iterate on the foundations of ${sub}, we are seeing a recursive effect. The better the challenges, the better the builders. The better the builders, the higher the standard for the entire ecosystem. This virtuous cycle is what fuels the Soho Space mission and keeps us at the forefront of the meritocratic hiring revolution.</p>`;
-    content += `<p>In conclusion, the mastery of ${sub} is the ultimate differentiator in the modern workforce. Whether you are a founder looking to scale or a builder looking to prove your worth, the focus must remain on the tangible, the verifiable, and the executable. The days of the resume are numbered, and the era of proof is just beginning.</p>`;
-    
-    // Adding extra filler paragraphs to ensure 1500+ words per blog
-    for(let j=0; j<3; j++) {
-      content += `<p>To expand on this, the philosophical underpinning of ${sub} relates to the concept of "antifragility" in systems design. When we test ${sub} in a competitive environment, we are not just looking for the best answer; we are looking for the most resilient answer. An Alpha Builder understands that code is a living organism that must adapt to changing business requirements and user needs. By focusing on ${sub}, we encourage a mindset that prioritizes long-term health over short-term hacks.</p>`;
-      content += `<p>Moreover, the integration of ${sub} into the daily workflow of a startup brings a level of transparency that was previously impossible. When everyone is an executor, there is nowhere to hide. Competence becomes the only hierarchy. This cultural shift is perhaps the most significant outcome of adopting a proof-of-execution model. It attracts talent that is hungry for ownership and repels those looking for a safe harbor to hide in. In the fast-paced world of tech, this is the only way to survive and thrive.</p>`;
-    }
-  }
-
-  content += `<h3>Final Thoughts on ${topic}</h3>`;
-  content += `<p>Looking ahead to 2030, we anticipate that 90% of technical hiring will be handled through systems like Soho Space. The frictionless nature of our merit-market will make traditional HR obsolete. Mastery of these principles today is your gateway to the future. Stay building, stay executing, and stay alpha.</p>`;
-
-  return content;
+const generateExtremelyLongContent = (title: string, subtopics: string[]) => {
+  return subtopics.map((sub, i) => `
+    <section class="mb-16">
+      <h2 class="text-3xl font-bold text-foreground mb-6 leading-tight">
+        ${i % 2 === 0 ? "Why" : "What"} does ${sub.toLowerCase()} mean for the future of ${title.toLowerCase()}?
+      </h2>
+      <div class="space-y-6">
+        <p class="leading-relaxed text-muted-foreground text-lg">
+          In the current architectural landscape, <strong>${sub}</strong> represents a significant shift 
+          in how we define excellence. Traditional systems rely on proxy metrics, but ${title.toLowerCase()} 
+          demands a move toward verifiable, immutable proof of execution.
+        </p>
+        <p class="leading-relaxed text-muted-foreground text-lg">
+          When teams implement <em>high-fidelity ${sub.toLowerCase()}</em>, they notice an immediate 
+          reduction in communicative overhead. By letting the work act as its own documentation, 
+          the barrier between idea and execution narrows significantly.
+        </p>
+        ${i % 3 === 0 ? `
+        <div class="glass p-8 rounded-2xl border-primary/20 bg-primary/[0.03] my-8 font-medium italic text-primary">
+          "The core transition is moving from 'trust me, I can build it' to 'here is the evidence that I already have.' 
+          This is the fundamental law of the Soho Space economy."
+        </div>
+        ` : ""}
+        <p class="leading-relaxed text-muted-foreground text-lg">
+          Moreover, the data collected from <strong>${sub}</strong> interactions provides founders with an 
+          unprecedented level of depth. Instead of seeing a abstract resume, they see a heatmap of 
+          real-world problem-solving and architectural integrity.
+        </p>
+        <p class="leading-relaxed text-muted-foreground text-lg italic border-l-2 border-border pl-4">
+          Ultimately, ${sub.toLowerCase()} isn't just a technical requirement—it's a cultural one. 
+          It requires a willingness to be judged solely on the quality of output, eliminating 
+          the noise of credentials and bias.
+        </p>
+      </div>
+    </section>
+  `).join("");
 };
 
 export const blogPosts: BlogPost[] = [];
