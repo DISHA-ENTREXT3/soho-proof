@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const CTASection = () => {
   return (
@@ -21,13 +22,17 @@ const CTASection = () => {
               Join thousands of builders and founders who are changing how hiring works.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 h-12">
-                Get Started Free
-                <ArrowRight className="ml-2" size={18} />
-              </Button>
-              <Button size="lg" variant="outline" className="border-border text-foreground hover:bg-secondary h-12 px-8">
-                Book a Demo
-              </Button>
+              <Link to="/auth">
+                <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 h-12 w-full sm:w-auto">
+                  Get Started Free
+                  <ArrowRight className="ml-2" size={18} />
+                </Button>
+              </Link>
+              <Link to="/auth">
+                <Button size="lg" variant="outline" className="border-border text-foreground hover:bg-secondary h-12 px-8 w-full sm:w-auto">
+                  Post a Challenge
+                </Button>
+              </Link>
             </div>
           </div>
         </motion.div>
