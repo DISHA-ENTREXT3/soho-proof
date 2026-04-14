@@ -6,7 +6,7 @@ import { ArrowRight, Calendar, User, Clock, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { blogPosts } from "@/data/blog-data";
+import { blogPosts } from "@/data/blogData";
 
 const BlogList = () => {
   const [searchTerm, setSearchTerm] = useState("");

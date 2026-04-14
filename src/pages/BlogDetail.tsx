@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Clock, Calendar, User, Share2, ChevronRight, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { blogPosts } from "@/data/blog-data";
+import { blogPosts } from "@/data/blogData";
 import { useEffect } from "react";
 
 const BlogDetail = () => {
