@@ -13,6 +13,7 @@ export interface AuthContextType {
   user: User | null;
   role: "talent" | "founder" | null;
   profileData: UserProfile | null;
+  onboardingComplete: boolean;
   loading: boolean;
   signOut: () => Promise<void>;
 }

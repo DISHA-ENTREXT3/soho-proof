@@ -19,6 +19,8 @@ import FounderOverview from "./pages/FounderOverview.tsx";
 import FounderProfileCreation from "./pages/FounderProfileCreation.tsx";
 import PublicProfile from "./pages/PublicProfile.tsx";
 import Pricing from "./pages/Pricing.tsx";
+import TalentOnboarding from "./pages/TalentOnboarding.tsx";
+import FounderOnboarding from "./pages/FounderOnboarding.tsx";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +41,12 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/login" element={<Auth />} />
+
+              {/* Onboarding — requires auth, no role guard, skips onboarding check */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/onboarding/talent" element={<TalentOnboarding />} />
+                <Route path="/onboarding/founder" element={<FounderOnboarding />} />
+              </Route>
               <Route element={<ProtectedRoute />}>
                 <Route path="/dashboard" element={<DashboardLayout />}>
 

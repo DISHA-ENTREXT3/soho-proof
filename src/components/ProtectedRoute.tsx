@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ requiredRole }: ProtectedRouteProps) => {
-  const { user, role, loading } = useAuth();
+  const { user, role, onboardingComplete, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -18,12 +18,19 @@ export const ProtectedRoute = ({ requiredRole }: ProtectedRouteProps) => {
     );
   }
 
+  // Not authenticated → send to auth
   if (!user) {
     return <Navigate to="/auth" replace state={{ from: location }} />;
   }
 
+  // Authenticated but onboarding not done → send to the correct onboarding page
+  if (!onboardingComplete && !location.pathname.startsWith("/onboarding")) {
+    const onboardingPath = role === "founder" ? "/onboarding/founder" : "/onboarding/talent";
+    return <Navigate to={onboardingPath} replace />;
+  }
+
+  // Wrong role → redirect to their correct dashboard
   if (requiredRole && role !== requiredRole) {
-    // Redirect to the correct dashboard if they are in the wrong place
     const targetDashboard = role === "founder" ? "/dashboard/founder" : "/dashboard";
     return <Navigate to={targetDashboard} replace />;
   }
