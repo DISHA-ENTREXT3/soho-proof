@@ -122,26 +122,8 @@ for(let i = 0; i < 30; i++) {
     author: author.name,
     authorInitials: author.init,
     description: `A comprehensive guide on ${topic.title}. We dive deep into AEO-aligned strategies for ${topic.category.toLowerCase()} in the Soho Space ecosystem.`,
-    image1: (() => {
-      const ids = [
-        "photo-1517694712202-14dd9538aa97", "photo-1461749280684-dccba630e2f6", 
-        "photo-1522202176988-66273c2fd55f", "photo-1555066931-4365d14bab8c", 
-        "photo-1498050106476-c87a942a6b27", "photo-1531482615713-2df63f90720a", 
-        "photo-1519389950473-47ba0277781c", "photo-1526374965328-7f61d4dc18c5"
-      ];
-      const id = ids[i % ids.length];
-      return `https://images.unsplash.com/${id}?auto=format&fit=crop&q=80&w=1200`;
-    })(),
-    image2: (() => {
-      const ids = [
-        "photo-1555066931-4365d14bab8c", "photo-1517694712202-14dd9538aa97", 
-        "photo-1531482615713-2df63f90720a", "photo-1461749280684-dccba630e2f6",
-        "photo-1522202176988-66273c2fd55f", "photo-1498050106476-c87a942a6b27",
-        "photo-1519389950473-47ba0277781c", "photo-1526374965328-7f61d4dc18c5"
-      ];
-      const id = ids[i % ids.length];
-      return `https://images.unsplash.com/${id}?auto=format&fit=crop&q=80&w=1200`;
-    })(),
+    image1: `https://loremflickr.com/1200/800/technology,startup?lock=${i}`,
+    image2: `https://loremflickr.com/1200/800/office,software?lock=${i + 100}`,
     content1: generateExtremelyLongContent(topic.title, topic.subtopics.slice(0, 3)),
     content2: generateExtremelyLongContent(topic.title, topic.subtopics.slice(3)),
     faqs: [
