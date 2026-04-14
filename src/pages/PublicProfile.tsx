@@ -1,293 +1,264 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useParams, Link } from "react-router-dom";
-import { 
-  Trophy, 
-  Zap, 
-  Star, 
-  Building2, 
-  Globe, 
-  ArrowLeft,
-  Github,
-  Twitter,
-  Linkedin,
-  MapPin,
-  Calendar,
-  ExternalLink,
-  Flame,
-  Swords
+import {
+  Trophy, Zap, Building2, Globe, ArrowLeft,
+  Github, Twitter, Linkedin, MapPin, Flame, Swords,
+  Loader2, AlertCircle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { InfiniteGrid } from "@/components/ui/infinite-grid";
+import { db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import type { TalentProfile, FounderProfile } from "@/hooks/use-profile";
 
-// Mock data for profiles - in a real app, this would be fetched from the API
-interface Profile {
-  type: "talent" | "founder";
-  name: string;
-  username: string;
-  avatar: string;
-  bio: string;
-  location: string;
-  joined: string;
-  role?: string;
-  level?: string;
-  xp?: number;
-  reputation?: string;
-  skills?: { name: string; level: number }[];
-  badges?: string[];
-  achievements?: number;
-  streak?: number;
-  company?: string;
-  industry?: string;
-  website?: string;
-  totalAwarded?: string;
-  activeChallenges?: number;
-  completedChallenges?: number;
-}
-
-const mockProfiles: Record<string, Profile> = {
-  "alex-rivera": {
-    type: "talent",
-    name: "Alex Rivera",
-    username: "arivera",
-    avatar: "AR",
-    role: "Legend Hunter",
-    level: "Legend",
-    xp: 8420,
-    reputation: "Elite (Top 1%)",
-    bio: "Full-stack developer focused on building scalable web applications. Passionate about real-time systems and UX.",
-    location: "San Francisco, CA",
-    joined: "March 2024",
-    skills: [
-      { name: "Frontend", level: 95 },
-      { name: "Backend", level: 88 },
-      { name: "UI/UX", level: 82 },
-    ],
-    badges: ["Top 10", "Challenge Winner", "Early Adopter"],
-    achievements: 12,
-    streak: 14
-  },
-  "jane-cooper": {
-    type: "founder",
-    name: "Jane Cooper",
-    username: "janecoop",
-    company: "Acme Corp",
-    avatar: "🏢",
-    industry: "AI & SaaS",
-    website: "https://acme.ai",
-    bio: "Founder of Acme Corp. We're building the next generation of AI tools for creators. Looking for top engineering talent.",
-    location: "Austin, TX",
-    joined: "June 2024",
-    totalAwarded: "$45,000",
-    activeChallenges: 3,
-    completedChallenges: 18,
-  }
-};
+type ProfileData = (TalentProfile | FounderProfile) & { uid: string };
 
 const PublicProfile = () => {
-  const { id } = useParams();
-  // Fallback to alex-rivera if no match (for demo)
-  const profile = mockProfiles[id as string] || mockProfiles["alex-rivera"];
-  const isFounder = profile.type === "founder";
+  const { id } = useParams<{ id: string }>();
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    if (!id) { setNotFound(true); setLoading(false); return; }
+
+    const fetch = async () => {
+      try {
+        const snap = await getDoc(doc(db, "users", id));
+        if (snap.exists()) {
+          setProfile({ uid: id, ...snap.data() } as ProfileData);
+        } else {
+          setNotFound(true);
+        }
+      } catch {
+        setNotFound(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetch();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (notFound || !profile) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4">
+        <AlertCircle className="h-12 w-12 text-muted-foreground" />
+        <p className="text-lg font-heading font-semibold text-foreground">Profile not found</p>
+        <Link to="/dashboard"><Button variant="outline">Back to Dashboard</Button></Link>
+      </div>
+    );
+  }
+
+  const isFounder = profile.role === "founder";
+  const fp = profile as FounderProfile;
+  const tp = profile as TalentProfile;
+
+  const initials = profile.name
+    ? profile.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()
+    : "??";
+
+  const socialLink = (url: string | undefined, base = "") =>
+    url ? (url.startsWith("http") ? url : `${base}${url}`) : null;
+
+  const githubUrl  = !isFounder ? socialLink(tp.github)   : null;
+  const twitterUrl = socialLink(profile.twitter);
+  const linkedinUrl= isFounder  ? socialLink(fp.linkedin)  : null;
+  const website    = isFounder  ? fp.companyWebsite : !isFounder ? tp.portfolio : null;
 
   return (
     <div className="relative min-h-screen bg-background font-body">
       <InfiniteGrid className="opacity-40" />
-      
-      {/* Background Decor */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 right-0 w-[50%] h-[40%] rounded-full bg-primary/10 blur-[150px]" />
         <div className="absolute bottom-0 left-0 w-[50%] h-[40%] rounded-full bg-accent/10 blur-[150px]" />
       </div>
 
       <div className="container mx-auto px-6 py-12 relative z-10 max-w-5xl">
-        {/* Back Link */}
-        <Link to="/dashboard" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-all mb-8">
+        <Link
+          to={isFounder ? "/dashboard/founder" : "/dashboard"}
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-all mb-8"
+        >
           <ArrowLeft size={16} /> Back to Dashboard
         </Link>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Sidebar Info Card */}
-          <motion.div 
+          {/* ── Left: identity card ── */}
+          <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             className="lg:col-span-1 space-y-6"
           >
             <div className="glass p-8 text-center border-primary/20">
+              {/* Avatar */}
               <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary to-accent mx-auto mb-6 flex items-center justify-center text-3xl shadow-xl shadow-primary/20 text-white font-bold">
-                {profile.avatar}
-              </div>
-              
-              <h1 className="text-2xl font-heading font-bold text-foreground mb-1">{profile.name}</h1>
-              <p className="text-sm text-primary font-medium mb-4">@{profile.username}</p>
-              
-              <div className="flex justify-center gap-4 mb-6">
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-secondary/50 border border-border">
-                  <Github size={18} className="text-muted-foreground" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-secondary/50 border border-border">
-                  <Twitter size={18} className="text-muted-foreground" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-secondary/50 border border-border">
-                  <Linkedin size={18} className="text-muted-foreground" />
-                </Button>
+                {initials}
               </div>
 
+              <h1 className="text-2xl font-heading font-bold text-foreground mb-1">{profile.name}</h1>
+
+              {isFounder && fp.companyName && (
+                <p className="text-sm text-primary font-semibold mb-1 flex items-center justify-center gap-1">
+                  <Building2 size={13} /> {fp.companyName}
+                </p>
+              )}
+              {isFounder && fp.industry && (
+                <span className="text-[10px] bg-accent/10 text-accent px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">
+                  {fp.industry}
+                </span>
+              )}
+              {!isFounder && tp.skills?.length > 0 && (
+                <div className="flex flex-wrap justify-center gap-1 mt-2">
+                  {tp.skills.slice(0, 3).map((s) => (
+                    <span key={s} className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">{s}</span>
+                  ))}
+                </div>
+              )}
+
+              {/* Social links */}
+              <div className="flex justify-center gap-3 mt-5 mb-6">
+                {githubUrl && (
+                  <a href={githubUrl} target="_blank" rel="noopener noreferrer">
+                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-secondary/50 border border-border">
+                      <Github size={16} className="text-muted-foreground" />
+                    </Button>
+                  </a>
+                )}
+                {twitterUrl && (
+                  <a href={twitterUrl.startsWith("@") ? `https://twitter.com/${twitterUrl.slice(1)}` : twitterUrl} target="_blank" rel="noopener noreferrer">
+                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-secondary/50 border border-border">
+                      <Twitter size={16} className="text-muted-foreground" />
+                    </Button>
+                  </a>
+                )}
+                {linkedinUrl && (
+                  <a href={linkedinUrl} target="_blank" rel="noopener noreferrer">
+                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-secondary/50 border border-border">
+                      <Linkedin size={16} className="text-muted-foreground" />
+                    </Button>
+                  </a>
+                )}
+              </div>
+
+              {/* Meta */}
               <div className="space-y-3 pt-6 border-t border-border text-left">
-                <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                  <MapPin size={14} className="text-primary" />
-                  {profile.location}
-                </div>
-                <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                  <Calendar size={14} className="text-primary" />
-                  Joined {profile.joined}
-                </div>
-                {isFounder && (
+                {profile.location && (
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                    <Globe size={14} className="text-primary" />
-                    <a href={profile.website} target="_blank" className="hover:text-primary transition-colors underline decoration-primary/30">
-                      {profile.website.replace("https://", "")}
+                    <MapPin size={14} className="text-primary flex-shrink-0" />
+                    {profile.location}
+                  </div>
+                )}
+                {website && (
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <Globe size={14} className="text-primary flex-shrink-0" />
+                    <a
+                      href={website.startsWith("http") ? website : `https://${website}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-primary transition-colors underline decoration-primary/30 truncate"
+                    >
+                      {website.replace(/^https?:\/\//, "")}
                     </a>
                   </div>
                 )}
               </div>
             </div>
-
-            {/* Talent-only Badges */}
-            {!isFounder && profile.badges && (
-               <div className="glass p-6 border-primary/20">
-                <h3 className="text-sm font-semibold text-foreground mb-4 uppercase tracking-wider">Top Badges</h3>
-                <div className="flex flex-wrap gap-2">
-                  {profile.badges.map((b: string) => (
-                    <Badge key={b} className="bg-primary/20 text-primary border-primary/30 py-1 px-3">
-                      {b}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
           </motion.div>
 
-          {/* Main Content Card */}
-          <motion.div 
+          {/* ── Right: main content ── */}
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="lg:col-span-2 space-y-8"
+            className="lg:col-span-2 space-y-6"
           >
-            {/* Header / Stats Overlay */}
+            {/* About + Stats */}
             <div className="glass p-8 border-primary/20 relative overflow-hidden">
-               <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                 {isFounder ? <Building2 size={120} /> : <Trophy size={120} />}
-               </div>
-               
-               <h2 className="text-xl font-heading font-bold text-foreground mb-4">About</h2>
-               <p className="text-muted-foreground leading-relaxed text-lg mb-8">
-                 {profile.bio}
-               </p>
+              <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                {isFounder ? <Building2 size={120} /> : <Trophy size={120} />}
+              </div>
 
-               <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-                 {isFounder ? (
-                   <>
+              <h2 className="text-xl font-heading font-bold text-foreground mb-3">About</h2>
+              <p className="text-muted-foreground leading-relaxed mb-8">
+                {profile.bio || "No bio added yet."}
+              </p>
+
+              {/* Stats */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+                {isFounder ? (
+                  <>
                     <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1 font-semibold">Total Awarded</p>
-                      <p className="text-2xl font-heading font-extrabold text-primary">{profile.totalAwarded}</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1 font-semibold">Company</p>
+                      <p className="text-xl font-heading font-extrabold text-primary">{fp.companyName || "—"}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1 font-semibold">Challenges</p>
-                      <p className="text-2xl font-heading font-extrabold text-foreground">{profile.completedChallenges}</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1 font-semibold">Industry</p>
+                      <p className="text-xl font-heading font-extrabold text-foreground">{fp.industry || "—"}</p>
                     </div>
-                   </>
-                 ) : (
-                   <>
+                  </>
+                ) : (
+                  <>
                     <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1 font-semibold">Experience</p>
-                      <p className="text-2xl font-heading font-extrabold text-primary">{profile.xp.toLocaleString()} XP</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1 font-semibold">Total XP</p>
+                      <p className="text-2xl font-heading font-extrabold text-primary flex items-center gap-1">
+                        <Zap size={18} /> {(tp.xp ?? 0).toLocaleString()}
+                      </p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1 font-semibold">Wins</p>
-                      <p className="text-2xl font-heading font-extrabold text-foreground">{profile.achievements}</p>
+                      <p className="text-2xl font-heading font-extrabold text-foreground flex items-center gap-1">
+                        <Trophy size={18} className="text-yellow-400" /> {tp.wins ?? 0}
+                      </p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1 font-semibold">Streak</p>
-                      <p className="text-2xl font-heading font-extrabold text-orange-400">
-                        {profile.streak} <Flame className="inline ml-1 h-5 w-5" />
+                      <p className="text-2xl font-heading font-extrabold text-orange-400 flex items-center gap-1">
+                        {tp.streak ?? 0} <Flame size={18} />
                       </p>
                     </div>
-                   </>
-                 )}
-               </div>
+                  </>
+                )}
+              </div>
             </div>
 
-            {/* Talent Specific: Skills & Graphs */}
-            {!isFounder && (
+            {/* Talent — skills */}
+            {!isFounder && tp.skills?.length > 0 && (
               <div className="glass p-8 border-primary/20">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-heading font-bold text-foreground">Skill Matrix</h3>
-                  <Badge className="bg-accent/20 text-accent border-accent/30">{profile.reputation}</Badge>
+                <div className="flex items-center justify-between mb-5">
+                  <h3 className="text-xl font-heading font-bold text-foreground">Skills</h3>
+                  <Badge className="bg-primary/20 text-primary border-primary/30">{tp.level ?? "Rookie"}</Badge>
                 </div>
-                <div className="space-y-6">
-                  {profile.skills?.map((s) => (
-                    <div key={s.name} className="space-y-2">
-                       <div className="flex justify-between text-sm">
-                         <span className="font-medium text-foreground">{s.name}</span>
-                         <span className="text-muted-foreground">{s.level}% Mastery</span>
-                       </div>
-                       <Progress value={s.level} className="h-2 bg-secondary" />
-                    </div>
+                <div className="flex flex-wrap gap-2">
+                  {tp.skills.map((skill) => (
+                    <span
+                      key={skill}
+                      className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-sm font-semibold border border-primary/20"
+                    >
+                      {skill}
+                    </span>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Founder Specific: Active Needs */}
+            {/* Founder — empty state for challenges */}
             {isFounder && (
-              <div className="glass p-8 border-primary/20">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-heading font-bold text-foreground">Open Challenges</h3>
-                  <Link to="/dashboard/challenges">
-                    <Button variant="link" className="text-primary p-0 h-auto font-bold flex items-center gap-1 group">
-                      View all <ExternalLink size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                    </Button>
-                  </Link>
-                </div>
-                
-                <div className="space-y-4">
-                  {[1, 2].map((c) => (
-                    <div key={c} className="p-4 rounded-xl bg-secondary/20 hover:bg-secondary/40 transition-all border border-transparent hover:border-primary/20 flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                          <Swords size={20} />
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-bold text-foreground">Critical Bug Fix: Real-time UI</h4>
-                          <p className="text-xs text-muted-foreground">React • TypeScript • $1,200 Reward</p>
-                        </div>
-                      </div>
-                      <Link to="/dashboard/challenges/123">
-                        <Button size="sm" variant="outline" className="text-xs border-border">Join</Button>
-                      </Link>
-                    </div>
-                  ))}
-                </div>
+              <div className="glass p-8 border-primary/20 text-center">
+                <Swords size={32} className="mx-auto text-muted-foreground/40 mb-3" />
+                <p className="text-sm text-muted-foreground">No public challenges yet.</p>
               </div>
             )}
-
-            {/* Footer Action */}
-            <div className="text-center pt-8">
-              {isFounder ? (
-                <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 glow-primary h-14 px-10 rounded-full text-lg shadow-xl">
-                  Contact Founder
-                </Button>
-              ) : (
-                <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 glow-primary h-14 px-10 rounded-full text-lg shadow-xl">
-                  Message Alpha Builder
-                </Button>
-              )}
-            </div>
           </motion.div>
         </div>
       </div>
