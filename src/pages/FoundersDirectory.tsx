@@ -16,14 +16,31 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 
-const founders = [
-  { id: "jane-cooper", name: "Jane Cooper", company: "Acme Corp", industry: "AI & SaaS", location: "Austin, TX", challenges: 3, avatar: "🏢", rating: "4.9", verified: true },
-  { id: "sam-altman", name: "Sam Altman", company: "OpenAI", industry: "Artificial Intelligence", location: "San Francisco, CA", challenges: 12, avatar: "💡", rating: "5.0", verified: true },
-  { id: "elon-musk", name: "Elon Musk", company: "X", industry: "Social Media", location: "San Francisco, CA", challenges: 8, avatar: "🚀", rating: "4.8", verified: true },
-  { id: "brian-chesky", name: "Brian Chesky", company: "Airbnb", industry: "Marketplace", location: "San Francisco, CA", challenges: 5, avatar: "🏠", rating: "4.9", verified: true },
-];
+import { useFounders } from "@/hooks/use-challenges";
+import type { FounderProfile } from "@/hooks/use-profile";
 
 const FoundersDirectory = () => {
+  const { data: rawFounders, isLoading } = useFounders();
+
+  const founders = (rawFounders as FounderProfile[] | undefined)?.map(f => ({
+    id: f.uid,
+    name: f.name || "Founder",
+    company: f.companyName || "Personal",
+    industry: f.industry || "General",
+    location: f.location || "Remote",
+    challenges: f.challengeCount || 0,
+    avatar: f.avatarInitials || "🏢",
+    rating: "4.9",
+    verified: true
+  })) || [];
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-primary animate-pulse font-heading text-xl">Scanning Global Founders...</div>
+      </div>
+    );
+  }
   return (
     <div className="space-y-6 max-w-7xl">
       {/* Header */}

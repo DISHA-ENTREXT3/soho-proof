@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useChallenge } from "@/hooks/use-challenges";
+import { useChallenge, useSubmissions } from "@/hooks/use-challenges";
 import type { ChallengeCategory, ChallengeStatus } from "@/types/challenge";
 import { toast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase";
@@ -51,10 +51,7 @@ const ChallengeDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const { data: challenge, isLoading, isError } = useChallenge(id);
-  
-  // For now, we'll keep submissions as they are or fetch them if needed
-  // In a real app, submissions would be part of the challenge detail response
-  const submissions = challenge?.submissions || [];
+  const { data: submissions = [] } = useSubmissions(id);
 
   const [submissionSummary, setSubmissionSummary] = useState("");
   const [submissionLink, setSubmissionLink] = useState("");

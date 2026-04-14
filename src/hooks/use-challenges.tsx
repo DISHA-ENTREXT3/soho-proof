@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Challenge } from "@/types/challenge";
+import { Challenge, Submission } from "@/types/challenge";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, doc, getDoc, query, orderBy, where, limit } from "firebase/firestore";
 import { UserProfile, TalentProfile } from "./use-profile";
@@ -40,6 +40,39 @@ export const useChallenge = (id: string | undefined) => {
     enabled: !!id,
   });
 };
+
+export const useSubmissions = (challengeId: string | undefined) => {
+  return useQuery<Submission[]>({
+    queryKey: ["submissions", challengeId],
+    queryFn: async () => {
+      if (!challengeId) return [];
+      const submissionsCol = collection(db, "submissions");
+      const q = query(submissionsCol, where("challengeId", "==", challengeId));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Submission[];
+    },
+    enabled: !!challengeId,
+  });
+};
+
+export const useFounders = () => {
+  return useQuery({
+    queryKey: ["founders"],
+    queryFn: async () => {
+      const usersCol = collection(db, "users");
+      const q = query(usersCol, where("role", "==", "founder"));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => ({
+        uid: doc.id,
+        ...doc.data()
+      })) as any[];
+    }
+  });
+};
+
 export const useFounderStats = (founderId: string | undefined) => {
   return useQuery({
     queryKey: ["founder-stats", founderId],
