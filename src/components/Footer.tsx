@@ -1,10 +1,39 @@
+import { Link } from "react-router-dom";
 import { SocialLinks } from "@/components/ui/SocialLinks";
+
+const COLUMNS = [
+  {
+    title: "Product",
+    links: [
+      { label: "Features",  to: "/#features" },
+      { label: "Pricing",   to: "/pricing" },
+      { label: "Roadmap",   to: "/#roadmap" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { label: "About",   to: "/#about" },
+      { label: "Contact", href: "mailto:business@entrext.in" },
+    ],
+  },
+  {
+    title: "Legal",
+    links: [
+      { label: "Privacy Policy",      to: "/privacy" },
+      { label: "Terms & Conditions",  to: "/terms" },
+      { label: "Cookie Policy",       to: "/cookies" },
+      { label: "Disclaimer & Refund", to: "/disclaimer" },
+    ],
+  },
+];
 
 const Footer = () => {
   return (
     <footer className="border-t border-border py-12 px-6">
       <div className="container mx-auto">
         <div className="grid md:grid-cols-4 gap-8 mb-12">
+          {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-4">
               <div className="w-7 h-7 rounded-lg overflow-hidden flex items-center justify-center">
@@ -17,28 +46,27 @@ const Footer = () => {
             </p>
           </div>
 
-          {[
-            {
-              title: "Product",
-              links: ["Features", "Pricing", "Roadmap", "Changelog"],
-            },
-            {
-              title: "Company",
-              links: ["About", "Blog", "Careers", "Contact"],
-            },
-            {
-              title: "Legal",
-              links: ["Privacy", "Terms", "Security"],
-            },
-          ].map((col) => (
+          {COLUMNS.map((col) => (
             <div key={col.title}>
               <h4 className="font-heading font-semibold text-sm text-foreground mb-3">{col.title}</h4>
               <ul className="space-y-2">
                 {col.links.map((link) => (
-                  <li key={link}>
-                    <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                      {link}
-                    </a>
+                  <li key={link.label}>
+                    {"href" in link ? (
+                      <a
+                        href={link.href}
+                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {link.label}
+                      </a>
+                    ) : (
+                      <Link
+                        to={link.to!}
+                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {link.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -50,8 +78,11 @@ const Footer = () => {
           <SocialLinks />
         </div>
 
-        <div className="text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} Soho Space. All rights reserved.
+        <div className="text-center text-xs text-muted-foreground mt-4">
+          © {new Date().getFullYear()} Soho Space by Entrext Labs. All rights reserved. ·{" "}
+          <a href="mailto:business@entrext.in" className="hover:text-foreground transition-colors">
+            business@entrext.in
+          </a>
         </div>
       </div>
     </footer>

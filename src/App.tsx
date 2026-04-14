@@ -21,6 +21,10 @@ import PublicProfile from "./pages/PublicProfile.tsx";
 import Pricing from "./pages/Pricing.tsx";
 import TalentOnboarding from "./pages/TalentOnboarding.tsx";
 import FounderOnboarding from "./pages/FounderOnboarding.tsx";
+import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
+import TermsConditions from "./pages/TermsConditions.tsx";
+import CookiePolicy from "./pages/CookiePolicy.tsx";
+import DisclaimerRefund from "./pages/DisclaimerRefund.tsx";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +45,11 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/login" element={<Auth />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<TermsConditions />} />
+              <Route path="/cookies" element={<CookiePolicy />} />
+              <Route path="/disclaimer" element={<DisclaimerRefund />} />
 
               {/* Onboarding — requires auth, no role guard, skips onboarding check */}
               <Route element={<ProtectedRoute />}>
