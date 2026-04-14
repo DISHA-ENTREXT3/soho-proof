@@ -104,8 +104,11 @@ const CreateChallenge = () => {
           weight: parseInt(c.weight)
         })),
         founderId: user.uid,
-        participantsCount: 0,
-        status: "open",
+        founderName: userData?.name || user.displayName || "Founder",
+        founderAvatar: (userData?.name || "F").charAt(0).toUpperCase(),
+        companyName: userData?.companyName || "Personal",
+        currentParticipants: 0,
+        status: "Open",
         createdAt: serverTimestamp(),
       });
 

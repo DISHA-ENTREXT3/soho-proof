@@ -14,6 +14,7 @@ export interface Challenge {
   deadline: string;
   maxParticipants: number;
   currentParticipants: number;
+  founderId: string;
   founderName: string;
   founderAvatar: string;
   companyName: string;

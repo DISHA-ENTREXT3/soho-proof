@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/use-profile";
+import { useFounderStats } from "@/hooks/use-challenges";
 import type { FounderProfile } from "@/hooks/use-profile";
 
 const container = {
@@ -20,6 +21,7 @@ const item = {
 const FounderOverview = () => {
   const { user } = useAuth();
   const { profile, profileLoading } = useProfile();
+  const { data: founderStats } = useFounderStats(user?.uid);
 
   if (profileLoading) {
     return (
@@ -39,10 +41,10 @@ const FounderOverview = () => {
   const location      = p?.location ?? "";
 
   const stats = [
-    { label: "Active Challenges",    value: "—", icon: Swords,        color: "text-primary",      gradient: "from-primary/10 to-primary/5" },
-    { label: "Submissions Received", value: "—", icon: MessageSquare, color: "text-blue-400",     gradient: "from-blue-400/10 to-blue-400/5" },
+    { label: "Active Challenges",    value: founderStats?.activeChallenges ?? 0, icon: Swords,        color: "text-primary",      gradient: "from-primary/10 to-primary/5" },
+    { label: "Total Challenges",     value: founderStats?.totalChallenges ?? 0, icon: Trophy,        color: "text-yellow-400",   gradient: "from-yellow-400/10 to-yellow-400/5" },
     { label: "Engaged Builders",     value: "—", icon: Users,         color: "text-accent",       gradient: "from-accent/10 to-accent/5" },
-    { label: "Total Prize Pool",     value: "—", icon: Trophy,        color: "text-yellow-400",   gradient: "from-yellow-400/10 to-yellow-400/5" },
+    { label: "Total Prize Pool",     value: founderStats?.totalPrize ?? "$0",     icon: Globe,        color: "text-blue-400",   gradient: "from-blue-400/10 to-blue-400/5" },
   ];
 
   return (

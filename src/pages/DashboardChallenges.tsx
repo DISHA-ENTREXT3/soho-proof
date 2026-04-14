@@ -225,7 +225,9 @@ const DashboardChallenges = () => {
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        window.location.href = "/profile/jane-cooper";
+                        // Use challenge.founderId if available, otherwise fallback
+                        const targetId = challenge.founderId || "unknown";
+                        window.location.href = `/profile/${targetId}`;
                       }}
                       className="flex items-center gap-2 hover:bg-secondary/50 rounded-lg p-1 -m-1 transition-colors"
                     >

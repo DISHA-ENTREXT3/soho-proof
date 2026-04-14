@@ -13,7 +13,7 @@ const COLUMNS = [
   {
     title: "Company",
     links: [
-      { label: "About",   to: "/#about" },
+      { label: "About",   href: "https://entrextlabs.entrext.com/" },
       { label: "Blog",    to: "/blogs" },
       { label: "Contact", href: "mailto:business@entrext.in" },
     ],
@@ -42,9 +42,12 @@ const Footer = () => {
               </div>
               <span className="font-heading font-bold text-foreground">Soho Space</span>
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed mb-4">
               Proof-of-execution hiring for the modern workforce.
             </p>
+            <div className="text-[10px] uppercase tracking-widest font-bold text-primary/60">
+              Made by Entrext Labs
+            </div>
           </div>
 
           {COLUMNS.map((col) => (

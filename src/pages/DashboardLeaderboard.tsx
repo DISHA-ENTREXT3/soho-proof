@@ -52,6 +52,8 @@ const leaderboardData = [
   { rank: 8, name: "Omar Hassan", xp: 3600, level: "Pro", avatar: "OH", trend: "+4%" },
 ];
 
+import { useGlobalLeaderboard } from "@/hooks/use-challenges";
+
 const containerVariants = {
   hidden: { opacity: 0 },
   show: {
@@ -67,7 +69,39 @@ const itemVariants = {
   show: { opacity: 1, y: 0 }
 };
 
+function getLevel(xp: number) {
+  if (xp >= 15000) return "Legend";
+  if (xp >= 10000) return "Master";
+  if (xp >= 6000) return "Elite";
+  if (xp >= 3000) return "Pro";
+  if (xp >= 1000) return "Builder";
+  return "Rookie";
+}
+
 const DashboardLeaderboard = () => {
+  const { data: rawUsers, isLoading } = useGlobalLeaderboard();
+
+  // Process data for podium and list
+  const users = rawUsers?.map((u, i) => ({
+    rank: i + 1,
+    name: u.name || "Anonymous",
+    xp: u.xp || 0,
+    level: getLevel(u.xp || 0),
+    avatar: u.name?.charAt(0) || "U",
+    isUser: false, // Could be enhanced with useAuth check
+    trend: "+0%",
+  })) || [];
+
+  const top3 = users.slice(0, 3);
+  const others = users.slice(3);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-primary animate-pulse font-heading text-xl">Loading Global Rankings...</div>
+      </div>
+    );
+  }
   return (
     <div className="max-w-7xl space-y-8 pb-10">
       {/* Header Section */}
@@ -99,7 +133,7 @@ const DashboardLeaderboard = () => {
         <div className="lg:col-span-2 space-y-8">
           {/* Top 3 Podium Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {topPerformers.map((player) => (
+            {top3.map((player) => (
               <motion.div
                 key={player.rank}
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -208,7 +242,7 @@ const DashboardLeaderboard = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {leaderboardData.map((player) => (
+              {others.map((player) => (
                 <motion.div
                   key={player.rank}
                   variants={itemVariants}
