@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, Timestamp } from "firebase/firestore";
 import { useAuth } from "./use-auth";
 
 export interface TalentProfile {
@@ -20,7 +20,9 @@ export interface TalentProfile {
   streak: number;
   level: string;
   onboardingComplete: boolean;
-  createdAt: any;
+  subscriptionTier?: "starter" | "pro";
+  submissionCount?: number;
+  createdAt: Timestamp;
 }
 
 export interface FounderProfile {
@@ -37,7 +39,9 @@ export interface FounderProfile {
   linkedin: string;
   avatarInitials: string;
   onboardingComplete: boolean;
-  createdAt: any;
+  subscriptionTier?: "starter" | "pro";
+  challengeCount?: number;
+  createdAt: Timestamp;
 }
 
 export type UserProfile = TalentProfile | FounderProfile;

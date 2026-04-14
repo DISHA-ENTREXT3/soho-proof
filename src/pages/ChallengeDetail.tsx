@@ -23,7 +23,7 @@ import { useChallenge } from "@/hooks/use-challenges";
 import type { ChallengeCategory, ChallengeStatus } from "@/types/challenge";
 import { toast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase";
-import { addDoc, collection, doc, updateDoc, increment, serverTimestamp } from "firebase/firestore";
+import { addDoc, collection, doc, updateDoc, increment, serverTimestamp, getDoc } from "firebase/firestore";
 import { useAuth } from "@/hooks/use-auth";
 
 const categoryColors: Record<ChallengeCategory, string> = {
@@ -99,6 +99,18 @@ const ChallengeDetail = () => {
       return;
     }
 
+    // Pricing limit check
+    const snap = await getDoc(doc(db, "users", user.uid));
+    const userData = snap.data();
+    if (userData?.subscriptionTier !== 'pro' && (userData?.submissionCount ?? 0) >= 2) {
+      toast({ 
+        title: "Limit reached", 
+        description: "Explorer Trial builders can only submit 2 entries total. Upgrade to Builder Pro for unlimited access!", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
     try {
       // 1. Add submission
       await addDoc(collection(db, "submissions"), {
@@ -112,7 +124,7 @@ const ChallengeDetail = () => {
         status: "Pending",
       });
 
-      // 2. Increment participant count
+      // 2. Increment participant count on challenge
       if (id) {
         const challengeRef = doc(db, "challenges", id);
         await updateDoc(challengeRef, {
@@ -120,11 +132,17 @@ const ChallengeDetail = () => {
         });
       }
 
+      // 3. Increment submission count on user (for tier limits)
+      await updateDoc(doc(db, "users", user.uid), {
+        submissionCount: increment(1)
+      });
+
       setSubmitted(true);
       toast({ title: "Submission sent!", description: "Your work has been submitted for review." });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Submission error:", error);
-      toast({ title: "Submission failed", description: "Could not submit your work. Please try again.", variant: "destructive" });
+      const err = error as Error;
+      toast({ title: "Submission failed", description: err.message || "Could not submit your work. Please try again.", variant: "destructive" });
     }
   };
 

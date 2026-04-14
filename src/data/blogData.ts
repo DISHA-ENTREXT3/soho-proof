@@ -113,8 +113,12 @@ for(let i = 0; i < 30; i++) {
     author: author.name,
     authorInitials: author.init,
     description: `A comprehensive guide on ${topic.title}. We dive deep into AEO-aligned strategies for ${topic.category.toLowerCase()} in the Soho Space ecosystem.`,
-    image1: `https://images.pexels.com/photos/${1000000 + (Math.floor(Math.random() * 500000))}/pexels-photo.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2`,
-    image2: `https://images.pexels.com/photos/${2000000 + (Math.floor(Math.random() * 500000))}/pexels-photo.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2`,
+    image1: [
+      "1181244", "3183150", "3182812", "3183183", "3184292", "3184339", "1181675", "3861969", "546819", "3184360", "3184311", "7378", "1181263", "1181270", "1181271", "3182750"
+    ][i % 16].replace(/^/, "https://images.pexels.com/photos/") + "/pexels-photo.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+    image2: [
+      "1181271", "3182750", "1181244", "3183150", "3182812", "3183183", "3184292", "3184339", "1181675", "3861969", "546819", "3184360", "3184311", "7378", "1181263", "1181270"
+    ][i % 16].replace(/^/, "https://images.pexels.com/photos/") + "/pexels-photo.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
     content1: generateExtremelyLongContent(topic.title, topic.subtopics.slice(0, 3)),
     content2: generateExtremelyLongContent(topic.title, topic.subtopics.slice(3)),
     faqs: [

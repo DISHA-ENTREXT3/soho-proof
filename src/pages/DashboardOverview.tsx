@@ -74,7 +74,21 @@ const DashboardOverview = () => {
           <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground">
             Welcome back, <span className="gradient-text">{firstName}</span>
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">Here's your performance snapshot.</p>
+          <div className="flex items-center gap-2 mt-1">
+            <p className="text-muted-foreground text-sm">Here's your performance snapshot.</p>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide ${
+              p?.subscriptionTier === 'pro' 
+                ? "bg-primary/20 text-primary border border-primary/30" 
+                : "bg-muted text-muted-foreground"
+            }`}>
+              {p?.subscriptionTier === 'pro' ? 'Builder Pro' : 'Explorer Trial'}
+            </span>
+            {p?.subscriptionTier !== 'pro' && (
+              <span className="text-[10px] text-muted-foreground font-medium">
+                ({2 - (p?.submissionCount ?? 0)}/2 entries left)
+              </span>
+            )}
+          </div>
         </div>
         {user && (
           <Link to={`/profile/${user.uid}`}>

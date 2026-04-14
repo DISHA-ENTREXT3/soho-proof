@@ -76,6 +76,7 @@ const Auth = () => {
           name,
           email,
           role: selectedRole,
+          subscriptionTier: "starter",
           createdAt: serverTimestamp(),
         });
         toast({
@@ -122,7 +123,7 @@ const Auth = () => {
     } catch (error: unknown) {
       const err = error as Error;
       // Ignore popup-closed errors
-      if ((err as any)?.code !== "auth/popup-closed-by-user") {
+      if ((err as { code?: string })?.code !== "auth/popup-closed-by-user") {
         toast({
           title: "Google sign-in failed",
           description: err.message || "Please try again.",
@@ -144,6 +145,7 @@ const Auth = () => {
         name: u.displayName ?? u.email ?? "User",
         email: u.email ?? "",
         role: pendingOAuthRole,
+        subscriptionTier: "starter",
         createdAt: serverTimestamp(),
       });
       toast({
