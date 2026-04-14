@@ -17,7 +17,7 @@ const SKILL_OPTIONS = [
 ];
 
 export default function TalentOnboarding() {
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
@@ -65,6 +65,9 @@ export default function TalentOnboarding() {
         onboardingComplete: true,
         updatedAt: serverTimestamp(),
       });
+
+      // Refresh auth context so ProtectedRoute sees onboardingComplete=true
+      await refreshProfile();
 
       toast({ title: "Profile created!", description: "Welcome to Soho Space 🚀" });
       navigate("/dashboard");

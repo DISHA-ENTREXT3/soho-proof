@@ -17,7 +17,7 @@ const INDUSTRY_OPTIONS = [
 ];
 
 export default function FounderOnboarding() {
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
@@ -57,6 +57,9 @@ export default function FounderOnboarding() {
         onboardingComplete: true,
         updatedAt: serverTimestamp(),
       });
+
+      // Refresh auth context so ProtectedRoute sees onboardingComplete=true
+      await refreshProfile();
 
       toast({ title: "Company profile created!", description: "Start posting challenges now 🚀" });
       navigate("/dashboard/founder");
