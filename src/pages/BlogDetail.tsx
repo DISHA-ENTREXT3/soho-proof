@@ -106,15 +106,6 @@ const BlogDetail = () => {
             {/* Boxed Content Structure */}
             <div className="space-y-12">
               
-              {/* Image 1 - Hero Style */}
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="relative aspect-[16/9] rounded-2xl overflow-hidden shadow-xl border border-border"
-              >
-                <img src={post.image1} alt={post.title} className="w-full h-full object-cover" />
-              </motion.div>
-
               {/* What You'll Learn Box (Reference: OpinVox "Key Takeaways") */}
               <motion.div 
                 initial={{ opacity: 0, x: -20 }}
@@ -155,11 +146,6 @@ const BlogDetail = () => {
                 <p className="text-muted-foreground relative z-10 italic">
                   — Soho Space Editorial Team
                 </p>
-              </div>
-
-              {/* Image 2 */}
-              <div className="relative aspect-[21/9] rounded-2xl overflow-hidden border border-border">
-                <img src={post.image2} alt={post.title} className="w-full h-full object-cover" />
               </div>
 
               {/* Main Text Section 2 (Boxed) */}
@@ -204,10 +190,7 @@ const BlogDetail = () => {
               </div>
               <div className="grid md:grid-cols-3 gap-8">
                 {relatedPosts.map((r, i) => (
-                  <Link key={r.slug} to={`/blogs/${r.slug}`} className="group block">
-                    <div className="relative aspect-[4/3] rounded-xl overflow-hidden mb-4 border border-border">
-                      <img src={r.image1} alt={r.title} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-105" />
-                    </div>
+                  <Link key={r.slug} to={`/blogs/${r.slug}`} className="group block glass p-6 rounded-2xl border-border hover:border-primary/30 transition-all duration-300">
                     <span className="text-[10px] font-bold text-primary uppercase tracking-widest">{r.category}</span>
                     <h4 className="font-heading font-bold text-base mt-2 leading-snug group-hover:text-primary transition-colors line-clamp-2">
                       {r.title}

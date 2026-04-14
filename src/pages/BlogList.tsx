@@ -44,20 +44,12 @@ const BlogList = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
             {filteredPosts.map((post, idx) => (
               <motion.article
-                key={post.id}
+                 key={post.id}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.05, duration: 0.5, ease: "easeOut" }}
-                className="group relative flex flex-col"
+                className="group relative flex flex-col p-8 glass rounded-[2.5rem] border border-border/40 hover:border-primary/30 transition-all duration-500"
               >
-                <Link to={`/blogs/${post.slug}`} className="block relative overflow-hidden rounded-[2rem] mb-6 aspect-[16/10] shadow-xl">
-                  <img
-                    src={post.image1}
-                    alt={post.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                </Link>
 
                 <div className="flex items-center gap-4 mb-4">
                   <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
