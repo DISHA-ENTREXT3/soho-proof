@@ -122,8 +122,8 @@ for(let i = 0; i < 30; i++) {
     author: author.name,
     authorInitials: author.init,
     description: `A comprehensive guide on ${topic.title}. We dive deep into AEO-aligned strategies for ${topic.category.toLowerCase()} in the Soho Space ecosystem.`,
-    image1: `https://loremflickr.com/1200/800/technology,startup?lock=${i}`,
-    image2: `https://loremflickr.com/1200/800/office,software?lock=${i + 100}`,
+    image1: `https://loremflickr.com/1200/800/${topic.category.toLowerCase().replace(/ /g, ",")},tech?lock=${i}`,
+    image2: `https://loremflickr.com/1200/800/${topic.category.toLowerCase().replace(/ /g, ",")},business?lock=${i + 500}`,
     content1: generateExtremelyLongContent(topic.title, topic.subtopics.slice(0, 3)),
     content2: generateExtremelyLongContent(topic.title, topic.subtopics.slice(3)),
     faqs: [
