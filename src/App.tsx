@@ -33,7 +33,7 @@ const queryClient = new QueryClient();
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/lib/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import UpvoteWidget from "./components/UpvoteWidget";
+import MonkFeedWidget from "./components/MonkFeedWidget";
 
 const App = () => (
   <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
@@ -91,7 +91,7 @@ const App = () => (
               <Route path="/profile/:id" element={<PublicProfile />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
-            <UpvoteWidget />
+            <MonkFeedWidget />
           </AuthProvider>
 
         </BrowserRouter>

@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
 
 const plans = [
   {
@@ -18,7 +19,7 @@ const plans = [
   },
   {
     name: "Founder",
-    price: "$99",
+    price: "$29",
     period: "/mo",
     description: "For startups hiring through proof",
     features: [
@@ -48,6 +49,7 @@ const plans = [
 ];
 
 const PricingSection = () => {
+  const { user } = useAuth();
   return (
     <section id="pricing" className="section-padding">
       <div className="container mx-auto">
@@ -100,6 +102,10 @@ const PricingSection = () => {
               </ul>
 
               <Button
+                onClick={() => {
+                  const url = `https://checkout.dodopayments.com/buy/pdt_0Nd1KSKvsSdQ6ty1ZO4w0?quantity=1&external_customer_id=${user?.uid || ""}&redirect_url=${window.location.origin}/dashboard`;
+                  window.location.href = url;
+                }}
                 className={
                   plan.highlight
                     ? "bg-primary text-primary-foreground hover:bg-primary/90 w-full"

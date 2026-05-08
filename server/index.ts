@@ -145,6 +145,39 @@ app.post("/api/submissions", async (req, res) => {
   }
 });
 
+// --- Webhooks ---
+
+// Dodo Payments Webhook
+app.post("/api/webhooks/dodo", async (req, res) => {
+  try {
+    const { event, data } = req.body;
+    
+    console.log(`Received Dodo Webhook: ${event}`, JSON.stringify(data));
+
+    if (event === "order.succeeded") {
+      const userId = data.external_customer_id;
+      
+      if (!userId) {
+        console.error("No external_customer_id found in Dodo webhook data");
+        return res.status(400).json({ error: "Missing user ID" });
+      }
+
+      // Update user in Firestore
+      await db.collection("users").doc(userId).update({
+        subscriptionTier: "pro",
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      console.log(`User ${userId} upgraded to Pro via Dodo Payments`);
+    }
+
+    res.status(200).json({ received: true });
+  } catch (error) {
+    console.error("Dodo Webhook error:", error);
+    res.status(500).json({ error: "Webhook handler failed" });
+  }
+});
+
 export default app;
 
 if (process.env.NODE_ENV !== 'production') {

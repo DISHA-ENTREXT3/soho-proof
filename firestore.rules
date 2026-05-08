@@ -18,6 +18,10 @@ service cloud.firestore {
     function isPro() {
       return getUserData().subscriptionTier == 'pro';
     }
+    
+    function isDev() {
+      return isAuthenticated() && request.auth.token.email.endsWith('@entrext.com');
+    }
 
     // Challenges Collection
     match /challenges/{challengeId} {
@@ -37,8 +41,8 @@ service cloud.firestore {
       // Basic update for metadata, incrementing participants
       allow update: if isAuthenticated();
       
-      // Respect deletion restriction
-      allow delete: if false;
+      // Respect deletion restriction, but allow devs for testing
+      allow delete: if isDev();
     }
 
     // Submissions Collection
@@ -59,7 +63,8 @@ service cloud.firestore {
       // Only the talent who submitted can update their work
       allow update: if isAuthenticated() && isOwner(resource.data.talentId);
       
-      allow delete: if false;
+      // Allow devs to delete for testing
+      allow delete: if isDev();
     }
 
     // Users Collection
@@ -68,9 +73,11 @@ service cloud.firestore {
       allow read: if true;
       
       // Users can only write to their own profile
-      // Added protection: Only owner can update tier (would normally be handled by admin or cloud function)
-      // For this MVP, we allow owner to write, but in production tier change must be locked.
-      allow write: if isAuthenticated() && isOwner(userId);
+      // Protection: Users cannot change their own subscriptionTier or role once set.
+      // This ensures pro status is only granted via the payment webhook.
+      allow create: if isAuthenticated() && isOwner(userId);
+      allow update: if isAuthenticated() && isOwner(userId) && 
+                    (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['subscriptionTier', 'role']));
     }
     
     // Direct Messages (Founder Pro / Builder Pro Feature)

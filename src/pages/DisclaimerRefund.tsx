@@ -60,7 +60,7 @@ const DisclaimerRefund = () => (
             </Section>
 
             <Section title="8. Paid Subscriptions — 7-Day Refund Window">
-              <p>If you are charged for a paid subscription (Founder Pro at $59/month or Builder Pro at $29/month) and are not satisfied, you may request a full refund within 7 days of the charge date. To request a refund, email <a href="mailto:business@entrext.in" className="text-primary hover:underline">business@entrext.in</a> with your registered email and reason for the request.</p>
+              <p>If you are charged for a paid subscription (Founder Pro at $29/month or Builder Pro at $29/month) and are not satisfied, you may request a full refund within 7 days of the charge date. To request a refund, email <a href="mailto:business@entrext.in" className="text-primary hover:underline">business@entrext.in</a> with your registered email and reason for the request.</p>
               <p>Refunds will be issued to the original payment method within 5–10 business days, subject to your payment provider's processing times.</p>
             </Section>
 

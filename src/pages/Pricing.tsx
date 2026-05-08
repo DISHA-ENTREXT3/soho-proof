@@ -5,6 +5,7 @@ import { CheckCircle2, Zap, Shield, Crown, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { InfiniteGrid } from "@/components/ui/infinite-grid";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/use-auth";
 
 const CONTACT = "mailto:business@entrext.in";
 
@@ -28,7 +29,7 @@ const founderPlans = [
   },
   {
     name: "Founder Pro",
-    price: "$59",
+    price: "$29",
     period: "/month",
     badge: "Most Popular",
     features: [
@@ -41,7 +42,7 @@ const founderPlans = [
       "Custom talent proof API",
     ],
     cta: "Get Started",
-    ctaHref: CONTACT,
+    ctaHref: "https://checkout.dodopayments.com/buy/pdt_0Nd1KSKvsSdQ6ty1ZO4w0?quantity=1",
     highlight: true,
     icon: Crown,
   },
@@ -79,7 +80,7 @@ const builderPlans = [
       "Boosted profile visibility",
     ],
     cta: "Unlock Pro",
-    ctaHref: CONTACT,
+    ctaHref: "https://checkout.dodopayments.com/buy/pdt_0Nd1KSKvsSdQ6ty1ZO4w0?quantity=1",
     highlight: true,
     icon: Zap,
   },
@@ -98,7 +99,17 @@ interface Plan {
 }
 
 const PlanCard = ({ plan }: { plan: Plan }) => {
-  const isExternal = plan.ctaHref.startsWith("mailto:");
+  const { user } = useAuth();
+  const isExternal = plan.ctaHref.startsWith("http");
+  const isMailto = plan.ctaHref.startsWith("mailto:");
+
+  const getHref = () => {
+    if (plan.ctaHref.includes("dodopayments.com")) {
+      return `${plan.ctaHref}&external_customer_id=${user?.uid || ""}&redirect_url=${window.location.origin}/dashboard`;
+    }
+    return plan.ctaHref;
+  };
+
   return (
     <motion.div
       whileHover={{ y: -8 }}
@@ -130,8 +141,8 @@ const PlanCard = ({ plan }: { plan: Plan }) => {
           ))}
         </ul>
       </div>
-      {isExternal ? (
-        <a href={plan.ctaHref}>
+      {isExternal || isMailto ? (
+        <a href={getHref()}>
           <Button
             size="lg"
             className={`w-full ${plan.highlight ? "bg-primary hover:bg-primary/90 text-primary-foreground glow-primary" : "bg-secondary hover:bg-secondary/80 text-foreground"}`}
@@ -162,55 +173,57 @@ const SectionHeader = ({ icon: Icon, title, color }: { icon: React.ElementType; 
   </div>
 );
 
-const Pricing = () => (
-  <div className="relative min-h-screen bg-background overflow-x-hidden">
-    <div className="fixed inset-0 z-0 opacity-100 pointer-events-none">
-      <InfiniteGrid className="!bg-transparent" />
-    </div>
-    <div className="relative z-10 flex flex-col min-h-screen">
-      <Navbar />
-      <main className="flex-grow pt-32 pb-20">
-        <div className="container mx-auto px-6">
-          {/* Hero */}
-          <div className="text-center mb-20">
-            <h1 className="font-heading text-4xl md:text-6xl font-bold mb-6">
-              Simple, <span className="gradient-text">Transparent</span> Pricing
-            </h1>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Start free, upgrade when you're ready. Built for founders who hire smart and builders who ship fast.
-            </p>
-          </div>
-
-          {/* Founders */}
-          <section className="mb-24">
-            <SectionHeader icon={Shield} title="For Founders" color="bg-primary/10" />
-            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-              {founderPlans.map((p) => <PlanCard key={p.name} plan={p} />)}
+const Pricing = () => {
+  return (
+    <div className="relative min-h-screen bg-background overflow-x-hidden">
+      <div className="fixed inset-0 z-0 opacity-100 pointer-events-none">
+        <InfiniteGrid className="!bg-transparent" />
+      </div>
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <Navbar />
+        <main className="flex-grow pt-32 pb-20">
+          <div className="container mx-auto px-6">
+            {/* Hero */}
+            <div className="text-center mb-20">
+              <h1 className="font-heading text-4xl md:text-6xl font-bold mb-6">
+                Simple, <span className="gradient-text">Transparent</span> Pricing
+              </h1>
+              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                Start free, upgrade when you're ready. Built for founders who hire smart and builders who ship fast.
+              </p>
             </div>
-          </section>
 
-          {/* Builders */}
-          <section>
-            <SectionHeader icon={Zap} title="For Builders" color="bg-primary/10" />
-            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-              {builderPlans.map((p) => <PlanCard key={p.name} plan={p} />)}
+            {/* Founders */}
+            <section className="mb-24">
+              <SectionHeader icon={Shield} title="For Founders" color="bg-primary/10" />
+              <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                {founderPlans.map((p) => <PlanCard key={p.name} plan={p} />)}
+              </div>
+            </section>
+
+            {/* Builders */}
+            <section>
+              <SectionHeader icon={Zap} title="For Builders" color="bg-primary/10" />
+              <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                {builderPlans.map((p) => <PlanCard key={p.name} plan={p} />)}
+              </div>
+            </section>
+
+            {/* Footer note */}
+            <div className="text-center mt-16">
+              <p className="text-sm text-muted-foreground">
+                Questions about pricing?{" "}
+                <a href="mailto:business@entrext.in" className="text-primary hover:underline font-semibold">
+                  Contact us at business@entrext.in
+                </a>
+              </p>
             </div>
-          </section>
-
-          {/* Footer note */}
-          <div className="text-center mt-16">
-            <p className="text-sm text-muted-foreground">
-              Questions about pricing?{" "}
-              <a href="mailto:business@entrext.in" className="text-primary hover:underline font-semibold">
-                Contact us at business@entrext.in
-              </a>
-            </p>
           </div>
-        </div>
-      </main>
-      <Footer />
+        </main>
+        <Footer />
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default Pricing;
