@@ -44,6 +44,8 @@ export default function MonkFeedWidget() {
       <div 
         className="monkfeed-widget upvote-widget"
         data-application-id="69baa800f2b9c4ec3d6aea89"
+        data-feedback-enabled="true"
+        data-show-feedback="true"
         data-user-id={userId || ''}
         data-email={email || ''}
         data-position="right"
