@@ -214,7 +214,7 @@ const ChallengeDetail = () => {
           <TabsTrigger value="details" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary">Details</TabsTrigger>
           <TabsTrigger value="submit" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary">Submit Work</TabsTrigger>
           <TabsTrigger value="submissions" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
-            Submissions ({submissions.length})
+            Submissions ({submissions?.length || 0})
           </TabsTrigger>
         </TabsList>
 
@@ -223,7 +223,7 @@ const ChallengeDetail = () => {
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass p-6">
             <h3 className="font-heading font-semibold text-foreground mb-3">Requirements</h3>
             <ul className="space-y-2">
-              {challenge.requirements.map((req, i) => (
+              {challenge.requirements?.map((req, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
                   <CheckCircle2 size={14} className="text-primary mt-0.5 flex-shrink-0" />
                   {req}
@@ -235,7 +235,7 @@ const ChallengeDetail = () => {
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass p-6">
             <h3 className="font-heading font-semibold text-foreground mb-3">Scoring Criteria</h3>
             <div className="space-y-3">
-              {challenge.scoringCriteria.map((sc) => (
+              {challenge.scoringCriteria?.map((sc) => (
                 <div key={sc.name}>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm font-medium text-foreground">{sc.name}</span>
@@ -304,12 +304,12 @@ const ChallengeDetail = () => {
         {/* Submissions Tab */}
         <TabsContent value="submissions">
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
-            {submissions.length === 0 ? (
+            {!submissions || submissions.length === 0 ? (
               <div className="glass p-12 text-center">
                 <p className="text-muted-foreground">No submissions yet.</p>
               </div>
             ) : (
-              submissions.map((sub) => (
+              submissions?.map((sub) => (
                 <div key={sub.id} className={`glass p-5 ${sub.status === "Winner" ? "border-yellow-400/30 glow-primary" : ""}`}>
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
