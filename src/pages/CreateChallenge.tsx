@@ -190,8 +190,8 @@ const CreateChallenge = () => {
           </Button>
         </Link>
         <div>
-          <h1 className="font-heading text-2xl font-bold text-foreground">Create Challenge</h1>
-          <p className="text-muted-foreground text-sm">Define a real problem for talent to solve.</p>
+          <h1 className="font-heading text-2xl font-bold text-foreground">Post Challenge</h1>
+          <p className="text-muted-foreground text-sm">Publish a real problem for builders to solve.</p>
         </div>
       </div>
 

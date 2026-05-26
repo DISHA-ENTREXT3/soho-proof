@@ -87,10 +87,10 @@ const FounderOverview = () => {
             </Link>
           )}
           <Link to="/dashboard/founder/challenges/create">
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 glow-primary h-11 px-6">
-              <Plus size={18} className="mr-2" />
-              Post New Challenge
-            </Button>
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90 glow-primary h-11 px-6">
+                <Plus size={18} className="mr-2" />
+              Post Challenge
+              </Button>
           </Link>
         </div>
       </div>

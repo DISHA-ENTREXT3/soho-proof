@@ -96,7 +96,7 @@ const DashboardChallenges = () => {
             {isFounder ? "My Challenges" : "Challenges"}
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            {isFounder ? "Create, post, and review builder submissions." : "Browse, filter, and compete."}
+            {isFounder ? "Post challenges and review builder submissions." : "Browse, filter, and compete."}
           </p>
         </div>
         {isFounder && (

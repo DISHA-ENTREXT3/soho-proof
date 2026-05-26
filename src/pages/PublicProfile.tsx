@@ -6,20 +6,64 @@ import { useParams, Link } from "react-router-dom";
 import {
   Trophy, Zap, Building2, Globe, ArrowLeft,
   Github, Twitter, Linkedin, MapPin, Flame, Swords,
-  Loader2, AlertCircle,
+  Loader2, AlertCircle, Clock, Users,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { InfiniteGrid } from "@/components/ui/infinite-grid";
 import { db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, orderBy, query, where } from "firebase/firestore";
 import type { TalentProfile, FounderProfile } from "@/hooks/use-profile";
+import type { Challenge, ChallengeStatus } from "@/types/challenge";
+import { useAuth } from "@/hooks/use-auth";
 
 type ProfileData = (TalentProfile | FounderProfile) & { uid: string };
 
+const statusColors: Record<ChallengeStatus, string> = {
+  Open: "bg-primary/20 text-primary",
+  "In Progress": "bg-blue-400/20 text-blue-400",
+  Judging: "bg-amber-400/20 text-amber-400",
+  Completed: "bg-muted text-muted-foreground",
+};
+
+const toIsoString = (value: unknown) => {
+  if (typeof value === "string") return value;
+  if (value && typeof value === "object" && "toDate" in value && typeof (value as { toDate: () => Date }).toDate === "function") {
+    return (value as { toDate: () => Date }).toDate().toISOString();
+  }
+  return new Date().toISOString();
+};
+
+const normalizePublicChallenge = (id: string, data: Record<string, unknown>): Challenge => ({
+  id,
+  title: String(data.title ?? ""),
+  description: String(data.description ?? ""),
+  category: data.category as Challenge["category"],
+  status: (data.status as ChallengeStatus) ?? "Open",
+  difficulty: data.difficulty as Challenge["difficulty"],
+  xpReward: Number(data.xpReward ?? 0),
+  rewardType: (data.rewardType as Challenge["rewardType"]) ?? "Recognition",
+  rewardLabel: String(data.rewardLabel ?? data.prize ?? ""),
+  prize: typeof data.prize === "string" ? data.prize : undefined,
+  deadline: toIsoString(data.deadline),
+  maxParticipants: Number(data.maxParticipants ?? 0),
+  currentParticipants: Number(data.currentParticipants ?? 0),
+  founderId: String(data.founderId ?? ""),
+  founderName: String(data.founderName ?? "Founder"),
+  founderAvatar: String(data.founderAvatar ?? "F"),
+  companyName: String(data.companyName ?? ""),
+  scoringCriteria: Array.isArray(data.scoringCriteria) ? data.scoringCriteria as Challenge["scoringCriteria"] : [],
+  criteria: Array.isArray(data.criteria) ? data.criteria as Challenge["criteria"] : undefined,
+  requirements: Array.isArray(data.requirements) ? data.requirements as string[] : [],
+  createdAt: toIsoString(data.createdAt),
+});
+
 const PublicProfile = () => {
   const { id } = useParams<{ id: string }>();
+  const { user, role } = useAuth();
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [founderChallenges, setFounderChallenges] = useState<Challenge[]>([]);
+  const [challengesLoading, setChallengesLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -30,13 +74,28 @@ const PublicProfile = () => {
       try {
         const snap = await getDoc(doc(db, "users", id));
         if (snap.exists()) {
-          setProfile({ uid: id, ...snap.data() } as ProfileData);
+          const profileData = { uid: id, ...snap.data() } as ProfileData;
+          setProfile(profileData);
+
+          if (profileData.role === "founder") {
+            setChallengesLoading(true);
+            const challengesQuery = query(
+              collection(db, "challenges"),
+              where("founderId", "==", id),
+              orderBy("createdAt", "desc"),
+            );
+            const challengeSnap = await getDocs(challengesQuery);
+            setFounderChallenges(
+              challengeSnap.docs.map((challengeDoc) => normalizePublicChallenge(challengeDoc.id, challengeDoc.data())),
+            );
+          }
         } else {
           setNotFound(true);
         }
       } catch {
         setNotFound(true);
       } finally {
+        setChallengesLoading(false);
         setLoading(false);
       }
     };
@@ -254,9 +313,67 @@ const PublicProfile = () => {
 
             {/* Founder — empty state for challenges */}
             {isFounder && (
-              <div className="glass p-8 border-primary/20 text-center">
-                <Swords size={32} className="mx-auto text-muted-foreground/40 mb-3" />
-                <p className="text-sm text-muted-foreground">No public challenges yet.</p>
+              <div className="glass p-8 border-primary/20">
+                <div className="flex items-center justify-between mb-5">
+                  <h3 className="text-xl font-heading font-bold text-foreground">Public Challenges</h3>
+                  <Badge className="bg-primary/20 text-primary border-primary/30">
+                    {founderChallenges.length}
+                  </Badge>
+                </div>
+
+                {challengesLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  </div>
+                ) : founderChallenges.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Swords size={32} className="mx-auto text-muted-foreground/40 mb-3" />
+                    <p className="text-sm text-muted-foreground">No public challenges yet.</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-3">
+                    {founderChallenges.map((challenge) => {
+                      const isOwnerFounder = user?.uid === profile.uid && role === "founder";
+                      const challengeTarget = isOwnerFounder
+                        ? `/dashboard/founder/challenges/${challenge.id}/manage`
+                        : role === "talent"
+                        ? `/dashboard/challenges/${challenge.id}`
+                        : "/auth";
+
+                      return (
+                        <Link
+                          key={challenge.id}
+                          to={challengeTarget}
+                          className="block rounded-lg border border-border bg-secondary/20 p-4 hover:border-primary/40 transition-colors"
+                        >
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <Badge className={`${statusColors[challenge.status]} border-0 text-xs`}>
+                              {challenge.status}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">{challenge.category}</span>
+                            <span className="text-xs text-muted-foreground ml-auto">{challenge.difficulty}</span>
+                          </div>
+                          <h4 className="font-heading font-semibold text-foreground mb-1">{challenge.title}</h4>
+                          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{challenge.description}</p>
+                          <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Clock size={12} /> {new Date(challenge.deadline).toLocaleDateString()}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Users size={12} /> {challenge.currentParticipants}/{challenge.maxParticipants}
+                            </span>
+                            <span className="flex items-center gap-1 text-primary">
+                              <Zap size={12} /> {challenge.xpReward} XP
+                            </span>
+                            <span className="ml-auto font-semibold text-primary">
+                              {isOwnerFounder ? "Manage Submissions" : challenge.rewardLabel || challenge.rewardType}
+                            </span>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
           </motion.div>

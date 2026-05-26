@@ -53,7 +53,8 @@ const chunk = <T,>(items: T[], size: number) => {
 const FounderMessages = () => {
   const { user, role } = useAuth();
   const isFounder = role === "founder";
-  const { data: challenges = [], isLoading: challengesLoading } = useFounderChallenges(isFounder ? user?.uid : undefined);
+  const { data: founderChallenges, isLoading: challengesLoading } = useFounderChallenges(isFounder ? user?.uid : undefined);
+  const challenges = useMemo(() => (isFounder ? founderChallenges ?? [] : []), [founderChallenges, isFounder]);
 
   const [contacts, setContacts] = useState<ThreadContact[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -68,7 +69,10 @@ const FounderMessages = () => {
 
   useEffect(() => {
     const loadContacts = async () => {
-      if (!user || !role) return;
+      if (!user || !role) {
+        setLoadingContacts(false);
+        return;
+      }
       setLoadingContacts(true);
       try {
         if (role === "founder") {
@@ -310,7 +314,7 @@ const FounderMessages = () => {
     }
   };
 
-  if (challengesLoading || loadingContacts) {
+  if ((isFounder && challengesLoading) || loadingContacts) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
