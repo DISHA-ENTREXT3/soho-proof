@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
 
 const performanceData = [
   { day: "Mon", xp: 3200 },
@@ -122,7 +123,13 @@ const DashboardLeaderboard = () => {
           <Button variant="outline" className="glass h-11">
             <Filter className="w-4 h-4 mr-2" /> All Categories
           </Button>
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 glow-primary h-11 px-6">
+          <Button 
+            className="bg-primary text-primary-foreground hover:bg-primary/90 glow-primary h-11 px-6"
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.href);
+              toast({ title: "Link copied!", description: "Leaderboard ranking link has been copied to clipboard." });
+            }}
+          >
             Share Ranking
           </Button>
         </div>

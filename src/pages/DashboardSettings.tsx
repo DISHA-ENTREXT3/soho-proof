@@ -53,7 +53,10 @@ const DashboardSettings = () => {
       setCompanyWebsite(fp?.companyWebsite ?? "");
       setLinkedin(fp?.linkedin ?? "");
     }
-  }, [profile]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.name, profile?.bio, profile?.location, profile?.twitter, isFounder,
+      tp?.github, tp?.portfolio, fp?.companyName, fp?.companyWebsite, fp?.linkedin]);
+
 
   const handleSaveProfile = async () => {
     if (!user) return;

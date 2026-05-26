@@ -9,6 +9,7 @@ import DashboardLayout from "./components/dashboard/DashboardLayout.tsx";
 import DashboardOverview from "./pages/DashboardOverview.tsx";
 import DashboardChallenges from "./pages/DashboardChallenges.tsx";
 import CreateChallenge from "./pages/CreateChallenge.tsx";
+import ManageChallenge from "./pages/ManageChallenge.tsx";
 import ChallengeDetail from "./pages/ChallengeDetail.tsx";
 import FoundersDirectory from "./pages/FoundersDirectory.tsx";
 import DashboardLeaderboard from "./pages/DashboardLeaderboard.tsx";
@@ -82,12 +83,12 @@ const App = () => (
                     <Route path="profile" element={<FounderProfileCreation />} />
                     <Route path="challenges" element={<DashboardChallenges />} />
                     <Route path="challenges/create" element={<CreateChallenge />} />
+                    <Route path="challenges/:id/manage" element={<ManageChallenge />} />
                     <Route path="founders" element={<FoundersDirectory />} />
                   </Route>
 
                 </Route>
               </Route>
-              <Route path="/pricing" element={<Pricing />} />
               <Route path="/profile/:id" element={<PublicProfile />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

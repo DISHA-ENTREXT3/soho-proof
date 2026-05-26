@@ -66,7 +66,7 @@ const ChallengeDetail = () => {
     );
   }
 
-  if (isError || !challenge) {
+  if (isError || challenge === null) {
     return (
       <div className="max-w-3xl">
         <Link to="/dashboard/challenges" className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4">
@@ -79,6 +79,9 @@ const ChallengeDetail = () => {
       </div>
     );
   }
+
+  // Prevent TS errors if challenge is undefined during loading
+  if (!challenge) return null;
 
   const daysLeft = Math.max(0, Math.ceil((new Date(challenge.deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
   const participationPercent = (challenge.currentParticipants / challenge.maxParticipants) * 100;

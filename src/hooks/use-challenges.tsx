@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Challenge, Submission } from "@/types/challenge";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, doc, getDoc, query, orderBy, where, limit } from "firebase/firestore";
-import { UserProfile, TalentProfile } from "./use-profile";
+import { UserProfile, TalentProfile, FounderProfile } from "./use-profile";
 
 
 export const useChallenges = () => {
@@ -21,7 +21,7 @@ export const useChallenges = () => {
 };
 
 export const useChallenge = (id: string | undefined) => {
-  return useQuery<Challenge>({
+  return useQuery<Challenge | null>({
     queryKey: ["challenge", id],
     queryFn: async () => {
       if (!id) throw new Error("Challenge ID is required");
@@ -29,7 +29,7 @@ export const useChallenge = (id: string | undefined) => {
       const docSnap = await getDoc(docRef);
       
       if (!docSnap.exists()) {
-        throw new Error("Challenge not found");
+        return null;
       }
       
       return {
@@ -59,7 +59,7 @@ export const useSubmissions = (challengeId: string | undefined) => {
 };
 
 export const useFounders = () => {
-  return useQuery({
+  return useQuery<FounderProfile[]>({
     queryKey: ["founders"],
     queryFn: async () => {
       const usersCol = collection(db, "users");
@@ -68,7 +68,7 @@ export const useFounders = () => {
       return snapshot.docs.map(doc => ({
         uid: doc.id,
         ...doc.data()
-      })) as any[];
+      })) as FounderProfile[];
     }
   });
 };
@@ -111,5 +111,22 @@ export const useGlobalLeaderboard = () => {
         ...doc.data()
       })) as TalentProfile[];
     }
+  });
+};
+
+export const useFounderChallenges = (founderId: string | undefined) => {
+  return useQuery<Challenge[]>({
+    queryKey: ["founder-challenges", founderId],
+    queryFn: async () => {
+      if (!founderId) return [];
+      const challengesCol = collection(db, "challenges");
+      const q = query(challengesCol, where("founderId", "==", founderId), orderBy("createdAt", "desc"));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Challenge[];
+    },
+    enabled: !!founderId,
   });
 };

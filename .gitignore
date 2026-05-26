@@ -25,3 +25,7 @@ dist-ssr
 
 # Firebase Admin SDK
 soho-space-firebase-adminsdk-*.json
+
+# Playwright
+playwright-report/
+test-results/

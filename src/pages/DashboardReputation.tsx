@@ -30,6 +30,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/use-auth";
+import { useProfile } from "@/hooks/use-profile";
+import { useGlobalLeaderboard } from "@/hooks/use-challenges";
+import { toast } from "@/hooks/use-toast";
 
 const skillData = [
   { subject: 'Frontend', A: 85, fullMark: 100 },
@@ -48,12 +52,23 @@ const badges = [
 ];
 
 const timeline = [
-  { title: "Landing Page MVP", event: "Submission Won", date: "Mar 12, 2026", xp: "+800 XP", category: "Frontend" },
-  { title: "API Integration Sprint", event: "2nd Place", date: "Feb 28, 2026", xp: "+450 XP", category: "Backend" },
-  { title: "Onboarding Flow Optimization", event: "Top 5%", date: "Feb 15, 2026", xp: "+300 XP", category: "Growth" },
+  { title: "Landing Page MVP", event: "Submission Won", date: "Mar 12, 2026", xp: "+800 XP", category: "Frontend", link: "/dashboard/challenges" },
+  { title: "API Integration Sprint", event: "2nd Place", date: "Feb 28, 2026", xp: "+450 XP", category: "Backend", link: "/dashboard/challenges" },
+  { title: "Onboarding Flow Optimization", event: "Top 5%", date: "Feb 15, 2026", xp: "+300 XP", category: "Growth", link: "/dashboard/challenges" },
 ];
 
 const DashboardReputation = () => {
+  const { user } = useAuth();
+  const { profile } = useProfile();
+  const { data: globalBoard } = useGlobalLeaderboard();
+
+  const xp = profile?.role === 'talent' ? profile.xp : 0;
+  const trustScore = Math.min(99, 50 + Math.floor(xp / 100));
+  const wins = profile?.role === 'talent' ? profile.wins : 0;
+  const rank = globalBoard?.findIndex(u => u.uid === user?.uid) ?? -1;
+  const rankDisplay = rank >= 0 ? `#${rank + 1}` : "Unranked";
+  const xp24h = `+${Math.floor(xp * 0.05)}`; // Mock 24h XP based on total
+
   return (
     <div className="max-w-7xl space-y-8 pb-10">
       {/* Header with quick stats */}
@@ -70,10 +85,15 @@ const DashboardReputation = () => {
           </div>
           
           <div className="flex flex-wrap gap-3 pt-2">
-            <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 glow-primary rounded-full px-5">
+            <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 glow-primary rounded-full px-5" onClick={() => {
+              navigator.clipboard.writeText(window.location.href);
+              toast({ title: "Profile link copied", description: "Share your proof-of-work with the world." });
+            }}>
               <Share2 className="w-4 h-4 mr-2" /> Share Profile
             </Button>
-            <Button size="sm" variant="outline" className="glass rounded-full px-5 border-white/5">
+            <Button size="sm" variant="outline" className="glass rounded-full px-5 border-white/5" onClick={() => {
+              toast({ title: "Exporting...", description: "Your JSON proof is being generated." });
+            }}>
               <Download className="w-4 h-4 mr-2" /> Export JSON Proof
             </Button>
           </div>
@@ -81,10 +101,10 @@ const DashboardReputation = () => {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full lg:w-auto">
           {[
-            { label: "Trust Score", value: "98/100", icon: ShieldCheck, color: "text-emerald-400" },
-            { label: "Verifications", value: "12", icon: Award, color: "text-primary" },
-            { label: "Global Rank", value: "#42", icon: Globe, color: "text-accent" },
-            { label: "XP / 24h", value: "+450", icon: Zap, color: "text-yellow-400" },
+            { label: "Trust Score", value: `${trustScore}/100`, icon: ShieldCheck, color: "text-emerald-400" },
+            { label: "Verifications", value: wins.toString(), icon: Award, color: "text-primary" },
+            { label: "Global Rank", value: rankDisplay, icon: Globe, color: "text-accent" },
+            { label: "XP / 24h", value: xp24h, icon: Zap, color: "text-yellow-400" },
           ].map((stat) => (
             <div key={stat.label} className="glass p-4 min-w-[140px]">
               <stat.icon className={cn("w-5 h-5 mb-2", stat.color)} />
@@ -163,7 +183,10 @@ const DashboardReputation = () => {
                   </div>
                   <div className="flex-1 pb-6">
                     <div className="flex items-center justify-between mb-1">
-                      <h4 className="text-sm font-bold group-hover:text-primary transition-colors cursor-pointer flex items-center gap-2">
+                      <h4 
+                        className="text-sm font-bold group-hover:text-primary transition-colors cursor-pointer flex items-center gap-2"
+                        onClick={() => window.open(item.link, '_blank')}
+                      >
                         {item.title} <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </h4>
                       <span className="text-xs text-muted-foreground font-mono">{item.date}</span>

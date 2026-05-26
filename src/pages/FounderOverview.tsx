@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/use-profile";
-import { useFounderStats } from "@/hooks/use-challenges";
+import { useFounderStats, useFounderChallenges } from "@/hooks/use-challenges";
 import type { FounderProfile } from "@/hooks/use-profile";
 
 const container = {
@@ -22,6 +22,7 @@ const FounderOverview = () => {
   const { user } = useAuth();
   const { profile, profileLoading } = useProfile();
   const { data: founderStats } = useFounderStats(user?.uid);
+  const { data: challenges, isLoading: challengesLoading } = useFounderChallenges(user?.uid);
 
   if (profileLoading) {
     return (
@@ -144,33 +145,64 @@ const FounderOverview = () => {
         ))}
       </motion.div>
 
-      {/* Get started CTA */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-        className="glass p-8 text-center border border-dashed border-primary/30"
-      >
-        <div className="p-3 rounded-xl bg-primary/10 w-fit mx-auto mb-4">
-          <Swords size={28} className="text-primary" />
+      {/* Challenges List or CTA */}
+      {challengesLoading ? (
+        <div className="flex items-center justify-center h-32">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
-        <h3 className="font-heading font-bold text-xl text-foreground mb-2">
-          Post your first challenge
-        </h3>
-        <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
-          Attract top builders to solve real problems for your startup. Set a prize, define requirements, and watch the submissions roll in.
-        </p>
-        <div className="flex items-center justify-center gap-3">
-          <Link to="/dashboard/founder/challenges/create">
-            <Button className="bg-primary hover:bg-primary/90 h-11 px-8">
-              <Plus size={18} className="mr-2" /> Post a Challenge
-            </Button>
-          </Link>
-          <Link to="/dashboard/founder/founders">
-            <Button variant="outline" className="border-border h-11 px-6 flex items-center gap-2">
-              Discover Talent <ArrowUpRight size={16} />
-            </Button>
-          </Link>
+      ) : challenges && challenges.length > 0 ? (
+        <div className="space-y-4">
+          <h3 className="font-heading font-bold text-xl text-foreground mt-8">Your Challenges</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {challenges.map((challenge) => (
+              <div key={challenge.id} className="glass p-5 flex flex-col h-full border border-primary/10">
+                <div className="flex justify-between items-start mb-2">
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
+                    challenge.status === 'Completed' ? 'bg-muted text-muted-foreground' : 'bg-primary/20 text-primary'
+                  }`}>
+                    {challenge.status}
+                  </span>
+                  <span className="text-xs text-muted-foreground font-mono">{challenge.currentParticipants} submissions</span>
+                </div>
+                <h4 className="font-heading font-semibold text-foreground mb-1 line-clamp-1">{challenge.title}</h4>
+                <p className="text-xs text-muted-foreground line-clamp-2 mb-4 flex-1">{challenge.description}</p>
+                <Link to={`/dashboard/founder/challenges/${challenge.id}/manage`}>
+                  <Button variant="outline" className="w-full text-xs h-8 border-border hover:bg-secondary">
+                    Manage Submissions
+                  </Button>
+                </Link>
+              </div>
+            ))}
+          </div>
         </div>
-      </motion.div>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+          className="glass p-8 text-center border border-dashed border-primary/30 mt-8"
+        >
+          <div className="p-3 rounded-xl bg-primary/10 w-fit mx-auto mb-4">
+            <Swords size={28} className="text-primary" />
+          </div>
+          <h3 className="font-heading font-bold text-xl text-foreground mb-2">
+            Post your first challenge
+          </h3>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
+            Attract top builders to solve real problems for your startup. Set a prize, define requirements, and watch the submissions roll in.
+          </p>
+          <div className="flex items-center justify-center gap-3">
+            <Link to="/dashboard/founder/challenges/create">
+              <Button className="bg-primary hover:bg-primary/90 h-11 px-8">
+                <Plus size={18} className="mr-2" /> Post a Challenge
+              </Button>
+            </Link>
+            <Link to="/dashboard/founder/founders">
+              <Button variant="outline" className="border-border h-11 px-6 flex items-center gap-2">
+                Discover Talent <ArrowUpRight size={16} />
+              </Button>
+            </Link>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 };
