@@ -18,6 +18,7 @@ import DashboardSettings from "./pages/DashboardSettings.tsx";
 import Auth from "./pages/Auth.tsx";
 import FounderOverview from "./pages/FounderOverview.tsx";
 import FounderProfileCreation from "./pages/FounderProfileCreation.tsx";
+import FounderMessages from "./pages/FounderMessages.tsx";
 import PublicProfile from "./pages/PublicProfile.tsx";
 import Pricing from "./pages/Pricing.tsx";
 import TalentOnboarding from "./pages/TalentOnboarding.tsx";
@@ -72,6 +73,7 @@ const App = () => (
                     <Route index element={<DashboardOverview />} />
                     <Route path="challenges" element={<DashboardChallenges />} />
                     <Route path="challenges/:id" element={<ChallengeDetail />} />
+                    <Route path="messages" element={<FounderMessages />} />
                     <Route path="founders" element={<FoundersDirectory />} />
                     <Route path="leaderboard" element={<DashboardLeaderboard />} />
                     <Route path="reputation" element={<DashboardReputation />} />
@@ -84,6 +86,7 @@ const App = () => (
                     <Route path="challenges" element={<DashboardChallenges />} />
                     <Route path="challenges/create" element={<CreateChallenge />} />
                     <Route path="challenges/:id/manage" element={<ManageChallenge />} />
+                    <Route path="messages" element={<FounderMessages />} />
                     <Route path="founders" element={<FoundersDirectory />} />
                   </Route>
 

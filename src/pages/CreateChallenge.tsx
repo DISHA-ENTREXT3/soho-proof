@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Link, useNavigate } from "react-router-dom";
-import { CATEGORIES, DIFFICULTIES } from "@/types/challenge";
+import { CATEGORIES, DIFFICULTIES, type RewardType } from "@/types/challenge";
 import { toast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp, doc, updateDoc, increment, getDoc } from "firebase/firestore";
@@ -36,7 +36,12 @@ const CreateChallenge = () => {
   const [difficulty, setDifficulty] = useState("");
   const [deadline, setDeadline] = useState("");
   const [maxParticipants, setMaxParticipants] = useState("15");
-  const [prize, setPrize] = useState("");
+  const [rewardType, setRewardType] = useState<RewardType>("Money");
+  const [rewardLabel, setRewardLabel] = useState("");
+  const [hirePosition, setHirePosition] = useState("");
+  const [hireCompensation, setHireCompensation] = useState("");
+  const [hireResponsibilities, setHireResponsibilities] = useState("");
+  const [hireSkillsRequired, setHireSkillsRequired] = useState("");
   const [xpReward, setXpReward] = useState("500");
   const [requirements, setRequirements] = useState<string[]>([""]);
   const [criteria, setCriteria] = useState<CriterionForm[]>([
@@ -69,6 +74,25 @@ const CreateChallenge = () => {
       toast({ title: "Missing fields", description: "Please fill all required fields.", variant: "destructive" });
       return;
     }
+    if (rewardType === "Money" && !rewardLabel.trim()) {
+      toast({
+        title: "Reward details required",
+        description: "Please add reward details for Money rewards.",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (
+      rewardType === "Hire" &&
+      (!hirePosition.trim() || !hireCompensation.trim() || !hireResponsibilities.trim() || !hireSkillsRequired.trim())
+    ) {
+      toast({
+        title: "Hiring details required",
+        description: "Please fill Position, Compensation, Responsibilities, and Skills Required.",
+        variant: "destructive",
+      });
+      return;
+    }
     if (totalWeight !== 100) {
       toast({ title: "Scoring weights must total 100%", description: `Currently at ${totalWeight}%.`, variant: "destructive" });
       return;
@@ -88,6 +112,14 @@ const CreateChallenge = () => {
 
     setLoading(true);
     try {
+      const finalRewardLabel =
+        rewardType === "Hire"
+          ? (rewardLabel.trim() || `Hiring for ${hirePosition.trim()} (${hireCompensation.trim()})`)
+          :
+        rewardType === "Recognition"
+          ? (rewardLabel.trim() || "Capability validation only")
+          : rewardLabel.trim();
+
       // 1. Save challenge
       await addDoc(collection(db, "challenges"), {
         title,
@@ -96,9 +128,27 @@ const CreateChallenge = () => {
         difficulty,
         deadline,
         maxParticipants: parseInt(maxParticipants),
-        prize,
+        rewardType,
+        rewardLabel: finalRewardLabel,
+        ...(rewardType === "Hire"
+          ? {
+              hireRewardDetails: {
+                position: hirePosition.trim(),
+                compensation: hireCompensation.trim(),
+                responsibilities: hireResponsibilities.trim(),
+                skillsRequired: hireSkillsRequired.trim(),
+              },
+            }
+          : {}),
+        // Legacy field retained for backward compatibility.
+        prize: finalRewardLabel,
         xpReward: parseInt(xpReward),
         requirements: requirements.filter(r => r.trim() !== ""),
+        scoringCriteria: criteria.map(c => ({
+          ...c,
+          weight: parseInt(c.weight)
+        })),
+        // Backward compatibility for any legacy views still reading `criteria`.
         criteria: criteria.map(c => ({
           ...c,
           weight: parseInt(c.weight)
@@ -195,10 +245,88 @@ const CreateChallenge = () => {
               <Input type="number" value={maxParticipants} onChange={(e) => setMaxParticipants(e.target.value)} className="bg-secondary/30 border-border" disabled={loading} />
             </div>
             <div className="space-y-2">
-              <Label>Prize</Label>
-              <Input value={prize} onChange={(e) => setPrize(e.target.value)} placeholder="$2,500" className="bg-secondary/30 border-border" disabled={loading} />
+              <Label>Reward Type</Label>
+              <Select value={rewardType} onValueChange={(value) => setRewardType(value as RewardType)} disabled={loading}>
+                <SelectTrigger className="bg-secondary/30 border-border">
+                  <SelectValue placeholder="Select reward type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Hire">Hire for a role</SelectItem>
+                  <SelectItem value="Money">Monetary compensation</SelectItem>
+                  <SelectItem value="Recognition">Capability only (no reward)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
+
+          <div className="space-y-2">
+            <Label>Reward Details {rewardType !== "Hire" ? "*" : "(optional)"}</Label>
+            <Input
+              value={rewardLabel}
+              onChange={(e) => setRewardLabel(e.target.value)}
+              placeholder={
+                rewardType === "Hire"
+                  ? "e.g. Frontend Engineer role interview + offer track"
+                  : rewardType === "Money"
+                  ? "e.g. $2,500 transfer on winner selection"
+                  : "e.g. Portfolio feedback + capability validation"
+              }
+              className="bg-secondary/30 border-border"
+              disabled={loading}
+            />
+          </div>
+
+          {rewardType === "Hire" && (
+            <div className="space-y-3 rounded-xl border border-border bg-secondary/20 p-4">
+              <h3 className="text-sm font-semibold text-foreground">Hiring Reward Details</h3>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Hiring for Role / Position *</Label>
+                  <Input
+                    value={hirePosition}
+                    onChange={(e) => setHirePosition(e.target.value)}
+                    placeholder="e.g. Frontend Engineer"
+                    className="bg-secondary/30 border-border"
+                    disabled={loading}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Compensation (Monthly/Annual, INR/USD) *</Label>
+                  <Input
+                    value={hireCompensation}
+                    onChange={(e) => setHireCompensation(e.target.value)}
+                    placeholder="e.g. INR 1,20,000/month or USD 95,000/year"
+                    className="bg-secondary/30 border-border"
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Key Expectations / Responsibilities *</Label>
+                <Textarea
+                  value={hireResponsibilities}
+                  onChange={(e) => setHireResponsibilities(e.target.value)}
+                  placeholder="e.g. Build product features, own frontend architecture, mentor junior devs..."
+                  rows={3}
+                  className="bg-secondary/30 border-border"
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Expertise / Skills Required *</Label>
+                <Textarea
+                  value={hireSkillsRequired}
+                  onChange={(e) => setHireSkillsRequired(e.target.value)}
+                  placeholder="e.g. React, TypeScript, performance optimization, system design..."
+                  rows={3}
+                  className="bg-secondary/30 border-border"
+                  disabled={loading}
+                />
+              </div>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>XP Reward</Label>
@@ -273,7 +401,7 @@ const CreateChallenge = () => {
             </Button>
           </Link>
           <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 h-11" disabled={loading}>
-            {loading ? <Loader2 className="animate-spin mr-2" size={18} /> : "Publish Challenge"}
+            {loading ? <Loader2 className="animate-spin mr-2" size={18} /> : "Post Challenge"}
           </Button>
         </div>
       </form>

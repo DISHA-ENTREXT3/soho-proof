@@ -45,7 +45,7 @@ const FounderOverview = () => {
     { label: "Active Challenges",    value: founderStats?.activeChallenges ?? 0, icon: Swords,        color: "text-primary",      gradient: "from-primary/10 to-primary/5" },
     { label: "Total Challenges",     value: founderStats?.totalChallenges ?? 0, icon: Trophy,        color: "text-yellow-400",   gradient: "from-yellow-400/10 to-yellow-400/5" },
     { label: "Engaged Builders",     value: "—", icon: Users,         color: "text-accent",       gradient: "from-accent/10 to-accent/5" },
-    { label: "Total Prize Pool",     value: founderStats?.totalPrize ?? "$0",     icon: Globe,        color: "text-blue-400",   gradient: "from-blue-400/10 to-blue-400/5" },
+    { label: "Total Monetary Rewards", value: (founderStats as { totalRewardValue?: string } | undefined)?.totalRewardValue ?? founderStats?.totalPrize ?? "$0", icon: Globe, color: "text-blue-400", gradient: "from-blue-400/10 to-blue-400/5" },
   ];
 
   return (
@@ -187,7 +187,7 @@ const FounderOverview = () => {
             Post your first challenge
           </h3>
           <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
-            Attract top builders to solve real problems for your startup. Set a prize, define requirements, and watch the submissions roll in.
+            Attract top builders to solve real problems for your startup. Set your reward type, define requirements, and watch the submissions roll in.
           </p>
           <div className="flex items-center justify-center gap-3">
             <Link to="/dashboard/founder/challenges/create">

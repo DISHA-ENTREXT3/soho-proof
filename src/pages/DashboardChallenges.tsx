@@ -1,11 +1,12 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Search, Plus, Filter, Clock, Users, Zap, ArrowRight } from "lucide-react";
+import { Search, Plus, Filter, Clock, Users, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
-import { useChallenges } from "@/hooks/use-challenges";
+import { useChallenges, useFounderChallenges } from "@/hooks/use-challenges";
+import { useAuth } from "@/hooks/use-auth";
 import {
   CATEGORIES,
   STATUSES,
@@ -48,12 +49,27 @@ const item = {
 };
 
 const DashboardChallenges = () => {
+  const { role, user } = useAuth();
+  const isFounder = role === "founder";
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<ChallengeCategory | "All">("All");
   const [selectedStatus, setSelectedStatus] = useState<ChallengeStatus | "All">("All");
   const [selectedDifficulty, setSelectedDifficulty] = useState<ChallengeDifficulty | "All">("All");
 
-  const { data: challenges, isLoading, isError } = useChallenges();
+  const {
+    data: allChallenges,
+    isLoading: allChallengesLoading,
+    isError: allChallengesError,
+  } = useChallenges();
+  const {
+    data: founderChallenges,
+    isLoading: founderChallengesLoading,
+    isError: founderChallengesError,
+  } = useFounderChallenges(user?.uid);
+
+  const challenges = isFounder ? founderChallenges : allChallenges;
+  const isLoading = isFounder ? founderChallengesLoading : allChallengesLoading;
+  const isError = isFounder ? founderChallengesError : allChallengesError;
 
   const filtered = useMemo(() => {
     if (!challenges) return [];
@@ -76,15 +92,21 @@ const DashboardChallenges = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground">Challenges</h1>
-          <p className="text-muted-foreground text-sm mt-1">Browse, filter, and compete.</p>
+          <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground">
+            {isFounder ? "My Challenges" : "Challenges"}
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            {isFounder ? "Create, post, and review builder submissions." : "Browse, filter, and compete."}
+          </p>
         </div>
-        <Link to="/dashboard/challenges/create">
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-            <Plus size={16} className="mr-2" />
-            Create Challenge
-          </Button>
-        </Link>
+        {isFounder && (
+          <Link to="/dashboard/founder/challenges/create">
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Plus size={16} className="mr-2" />
+              Post Challenge
+            </Button>
+          </Link>
+        )}
       </div>
 
       {/* Search & Filters */}
@@ -186,7 +208,10 @@ const DashboardChallenges = () => {
         <motion.div variants={container} initial="hidden" animate="show" className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filtered.map((challenge) => (
             <motion.div key={challenge.id} variants={item}>
-              <Link to={`/dashboard/challenges/${challenge.id}`} className="block">
+              <Link
+                to={isFounder ? `/dashboard/founder/challenges/${challenge.id}/manage` : `/dashboard/challenges/${challenge.id}`}
+                className="block"
+              >
                 <div className="glass p-5 h-full flex flex-col hover:border-primary/30 transition-all duration-300 group">
                   <div className="flex items-center gap-2 mb-3">
                     <Badge className={`${categoryColors[challenge.category]} border-0 text-xs`}>
@@ -207,6 +232,21 @@ const DashboardChallenges = () => {
                   <p className="text-sm text-muted-foreground line-clamp-2 mb-4 flex-1">
                     {challenge.description}
                   </p>
+
+                  {challenge.requirements?.length > 0 && (
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Requirements: <span className="text-foreground">{challenge.requirements.slice(0, 2).join(" | ")}</span>
+                    </p>
+                  )}
+
+                  {challenge.scoringCriteria?.length > 0 && (
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Scoring:{" "}
+                      <span className="text-foreground">
+                        {challenge.scoringCriteria.map((criterion) => `${criterion.name} ${criterion.weight}%`).join(" | ")}
+                      </span>
+                    </p>
+                  )}
 
                   <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
                     <span className="flex items-center gap-1">
@@ -239,7 +279,17 @@ const DashboardChallenges = () => {
                         <p className="text-[10px] text-muted-foreground">{challenge.companyName}</p>
                       </div>
                     </button>
-                    <span className="text-sm font-heading font-semibold text-primary">{challenge.prize}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] rounded-full border border-border bg-secondary/40 px-2 py-0.5 text-muted-foreground">
+                        {challenge.rewardType}
+                      </span>
+                      <span className="text-sm font-heading font-semibold text-primary">{challenge.rewardLabel || "Reward"}</span>
+                      {isFounder && (
+                        <span className="text-[10px] rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-primary font-semibold">
+                          Review Submissions
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </Link>

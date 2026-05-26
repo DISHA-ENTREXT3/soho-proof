@@ -1,14 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, ExternalLink, Trophy, Loader2 } from "lucide-react";
+import { ArrowLeft, ExternalLink, Trophy, Loader2, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useChallenge, useSubmissions } from "@/hooks/use-challenges";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/lib/firebase";
-import { writeBatch, doc, increment } from "firebase/firestore";
+import { writeBatch, doc, increment, addDoc, collection, serverTimestamp, getDocs, query, where, updateDoc } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
-import { Submission } from "@/types/challenge";
+import { Submission, Payout } from "@/types/challenge";
 
 const FEEDBACK_OPTIONS = [
   "Amazing",
@@ -38,6 +38,50 @@ const ManageChallenge = () => {
   const [scores, setScores] = useState<Record<string, string>>({});
   const [feedbacks, setFeedbacks] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [payout, setPayout] = useState<Payout | null>(null);
+  const [loadingPayout, setLoadingPayout] = useState(true);
+  const [isUpdatingPayout, setIsUpdatingPayout] = useState(false);
+  const [transferReference, setTransferReference] = useState("");
+  const [payoutNotes, setPayoutNotes] = useState("");
+
+  useEffect(() => {
+    const fetchPayout = async () => {
+      if (!id) {
+        setLoadingPayout(false);
+        return;
+      }
+      try {
+        const payoutQuery = query(collection(db, "payouts"), where("challengeId", "==", id));
+        const snapshot = await getDocs(payoutQuery);
+        if (!snapshot.empty) {
+          const payoutDoc = snapshot.docs[0];
+          const payoutData = payoutDoc.data() as Record<string, unknown>;
+          const normalizedPayout: Payout = {
+            id: payoutDoc.id,
+            challengeId: String(payoutData.challengeId ?? ""),
+            winnerSubmissionId: String(payoutData.winnerSubmissionId ?? ""),
+            founderId: String(payoutData.founderId ?? ""),
+            builderId: String(payoutData.builderId ?? ""),
+            builderName: String(payoutData.builderName ?? "Builder"),
+            rewardLabel: String(payoutData.rewardLabel ?? payoutData.prizeLabel ?? "Manual payout"),
+            status: (payoutData.status as Payout["status"]) ?? "Pending",
+            transferReference: typeof payoutData.transferReference === "string" ? payoutData.transferReference : undefined,
+            payoutNotes: typeof payoutData.payoutNotes === "string" ? payoutData.payoutNotes : undefined,
+            createdAt: typeof payoutData.createdAt === "string" ? payoutData.createdAt : new Date().toISOString(),
+            paidAt: typeof payoutData.paidAt === "string" ? payoutData.paidAt : undefined,
+          };
+          setPayout(normalizedPayout);
+          setTransferReference(normalizedPayout.transferReference || "");
+          setPayoutNotes(normalizedPayout.payoutNotes || "");
+        }
+      } catch {
+        // Ignore payout load errors here to keep review screen usable.
+      } finally {
+        setLoadingPayout(false);
+      }
+    };
+    fetchPayout();
+  }, [id]);
 
   if (challengeLoading || subsLoading) {
     return <div className="flex justify-center p-12"><Loader2 className="animate-spin text-primary w-8 h-8" /></div>;
@@ -64,7 +108,8 @@ const ManageChallenge = () => {
       return;
     }
 
-    if (!window.confirm(`Are you sure you want to mark ${sub.talentName} as the winner? This will close the challenge and award ${challenge.xpReward} XP.`)) {
+    const rewardSummary = challenge.rewardLabel ? ` Reward: ${challenge.rewardType} - ${challenge.rewardLabel}.` : "";
+    if (!window.confirm(`Are you sure you want to mark ${sub.talentName} as the winner? This will close the challenge and award ${challenge.xpReward} XP.${rewardSummary}`)) {
       return;
     }
 
@@ -89,12 +134,66 @@ const ManageChallenge = () => {
       });
 
       await batch.commit();
+
+      if (challenge.rewardType === "Money") {
+        const payoutRef = await addDoc(collection(db, "payouts"), {
+          challengeId: challenge.id,
+          winnerSubmissionId: sub.id,
+          founderId: challenge.founderId,
+          builderId: sub.talentId,
+          builderName: sub.talentName,
+          rewardLabel: challenge.rewardLabel || "Manual payout",
+          status: "Pending",
+          createdAt: serverTimestamp(),
+        });
+
+        setPayout({
+          id: payoutRef.id,
+          challengeId: challenge.id,
+          winnerSubmissionId: sub.id,
+          founderId: challenge.founderId,
+          builderId: sub.talentId,
+          builderName: sub.talentName,
+          rewardLabel: challenge.rewardLabel || "Manual payout",
+          status: "Pending",
+          createdAt: new Date().toISOString(),
+        });
+      }
       toast({ title: "Challenge Completed", description: `${sub.talentName} has been declared the winner!` });
-      navigate("/dashboard/founder");
+      navigate(`/dashboard/founder/challenges/${challenge.id}/manage`);
     } catch (error) {
       toast({ title: "Error", description: error instanceof Error ? error.message : "An unknown error occurred", variant: "destructive" });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleMarkPayoutPaid = async () => {
+    if (!payout) return;
+    if (!transferReference.trim()) {
+      toast({ title: "Transfer reference required", description: "Add bank transfer ID / UTR / transaction reference.", variant: "destructive" });
+      return;
+    }
+    setIsUpdatingPayout(true);
+    try {
+      await updateDoc(doc(db, "payouts", payout.id), {
+        status: "Paid",
+        transferReference: transferReference.trim(),
+        payoutNotes: payoutNotes.trim(),
+        paidAt: serverTimestamp(),
+      });
+      setPayout({
+        ...payout,
+        status: "Paid",
+        transferReference: transferReference.trim(),
+        payoutNotes: payoutNotes.trim(),
+        paidAt: new Date().toISOString(),
+      });
+      toast({ title: "Payout marked paid", description: "Manual transfer has been recorded successfully." });
+    } catch (error) {
+      toast({ title: "Could not update payout", description: error instanceof Error ? error.message : "Please try again.", variant: "destructive" });
+    } finally {
+      setIsUpdatingPayout(false);
     }
   };
 
@@ -112,6 +211,84 @@ const ManageChallenge = () => {
           <span>Reward: <strong>{challenge.xpReward} XP</strong></span>
         </div>
       </div>
+
+      {challenge.status === "Completed" && challenge.rewardType === "Money" && !loadingPayout && (
+        <div className="glass p-6 space-y-4">
+          <h2 className="font-heading text-xl font-semibold">Manual Payout Transfer</h2>
+          {!payout ? (
+            <p className="text-sm text-muted-foreground">No payout record found for this challenge winner.</p>
+          ) : (
+            <>
+              <div className="text-sm text-muted-foreground space-y-1">
+                <p>Winner: <span className="text-foreground font-medium">{payout.builderName}</span></p>
+                <p>Reward: <span className="text-foreground font-medium">{payout.rewardLabel}</span></p>
+                <p>Status: <span className={payout.status === "Paid" ? "text-emerald-400 font-semibold" : "text-amber-400 font-semibold"}>{payout.status}</span></p>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground">Transfer Reference</label>
+                  <Input
+                    placeholder="UTR / Txn ID / Bank Ref"
+                    value={transferReference}
+                    onChange={(event) => setTransferReference(event.target.value)}
+                    disabled={payout.status === "Paid" || isUpdatingPayout}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground">Payout Notes</label>
+                  <Input
+                    placeholder="e.g. IMPS sent to builder account"
+                    value={payoutNotes}
+                    onChange={(event) => setPayoutNotes(event.target.value)}
+                    disabled={payout.status === "Paid" || isUpdatingPayout}
+                  />
+                </div>
+              </div>
+              {payout.status === "Paid" && (
+                <p className="text-xs text-emerald-400">Paid on {payout.paidAt ? new Date(payout.paidAt).toLocaleString() : "recorded"}.</p>
+              )}
+              {payout.status !== "Paid" && (
+                <Button onClick={handleMarkPayoutPaid} disabled={isUpdatingPayout}>
+                  {isUpdatingPayout ? <Loader2 size={14} className="mr-2 animate-spin" /> : null}
+                  Mark Payout as Paid
+                </Button>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {challenge.status === "Completed" && challenge.rewardType !== "Money" && (
+        <div className="glass p-6">
+          <h2 className="font-heading text-xl font-semibold mb-2">Reward Outcome</h2>
+          <p className="text-sm text-muted-foreground">
+            Reward Type: <span className="text-foreground font-medium">{challenge.rewardType}</span>
+          </p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Details: <span className="text-foreground font-medium">{challenge.rewardLabel || "Not specified"}</span>
+          </p>
+          {challenge.rewardType === "Hire" && (
+            <div className="grid sm:grid-cols-2 gap-3 mt-3 text-sm">
+              <div className="rounded-lg border border-border bg-secondary/20 p-3">
+                <p className="text-xs text-muted-foreground mb-1">Position</p>
+                <p className="text-foreground font-medium">{challenge.hireRewardDetails?.position || "Not specified"}</p>
+              </div>
+              <div className="rounded-lg border border-border bg-secondary/20 p-3">
+                <p className="text-xs text-muted-foreground mb-1">Compensation</p>
+                <p className="text-foreground font-medium">{challenge.hireRewardDetails?.compensation || "Not specified"}</p>
+              </div>
+              <div className="rounded-lg border border-border bg-secondary/20 p-3">
+                <p className="text-xs text-muted-foreground mb-1">Responsibilities</p>
+                <p className="text-foreground">{challenge.hireRewardDetails?.responsibilities || "Not specified"}</p>
+              </div>
+              <div className="rounded-lg border border-border bg-secondary/20 p-3">
+                <p className="text-xs text-muted-foreground mb-1">Skills Required</p>
+                <p className="text-foreground">{challenge.hireRewardDetails?.skillsRequired || "Not specified"}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="space-y-4">
         <h2 className="font-heading text-xl font-semibold">Submissions</h2>
@@ -140,6 +317,9 @@ const ManageChallenge = () => {
                 <a href={sub.link} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 w-fit">
                   <ExternalLink size={12} /> View Work
                 </a>
+                <Link to="/dashboard/founder/messages" className="text-xs text-primary hover:underline flex items-center gap-1 w-fit mt-2">
+                  <MessageSquare size={12} /> Message Builder
+                </Link>
               </div>
 
               {challenge.status !== "Completed" && (

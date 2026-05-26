@@ -39,7 +39,7 @@ const DisclaimerRefund = () => (
             </Section>
 
             <Section title="4. Financial Disclaimer">
-              <p>Prize amounts displayed in challenges are set by Founders. Entrext Labs facilitates the platform but does not guarantee payment or release of prizes by Founders. Any payment disputes must be resolved directly between the Founder and Builder. We are not responsible for financial losses arising from unpaid prizes or failed transactions.</p>
+              <p>Reward terms displayed in challenges are set by Founders. Entrext Labs facilitates the platform but does not guarantee payment, hiring, or delivery of any reward by Founders. Any reward disputes must be resolved directly between the Founder and Builder. We are not responsible for losses arising from unpaid or unfulfilled reward commitments.</p>
             </Section>
 
             <Section title="5. Third-Party Content">

@@ -182,8 +182,8 @@ const ChallengeDetail = () => {
           </div>
           <div className="glass-subtle p-3 text-center">
             <Trophy size={16} className="text-yellow-400 mx-auto mb-1" />
-            <p className="text-lg font-heading font-bold text-foreground">{challenge.prize}</p>
-            <p className="text-xs text-muted-foreground">Prize Pool</p>
+            <p className="text-lg font-heading font-bold text-foreground">{challenge.rewardLabel || "Not specified"}</p>
+            <p className="text-xs text-muted-foreground">{challenge.rewardType} Reward</p>
           </div>
         </div>
 
@@ -220,6 +220,30 @@ const ChallengeDetail = () => {
 
         {/* Details Tab */}
         <TabsContent value="details" className="space-y-4">
+          {challenge.rewardType === "Hire" && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass p-6">
+              <h3 className="font-heading font-semibold text-foreground mb-3">Hiring Reward Details</h3>
+              <div className="grid sm:grid-cols-2 gap-3 text-sm">
+                <div className="rounded-lg border border-border bg-secondary/20 p-3">
+                  <p className="text-xs text-muted-foreground mb-1">Position</p>
+                  <p className="text-foreground font-medium">{challenge.hireRewardDetails?.position || "Not specified"}</p>
+                </div>
+                <div className="rounded-lg border border-border bg-secondary/20 p-3">
+                  <p className="text-xs text-muted-foreground mb-1">Compensation</p>
+                  <p className="text-foreground font-medium">{challenge.hireRewardDetails?.compensation || "Not specified"}</p>
+                </div>
+                <div className="rounded-lg border border-border bg-secondary/20 p-3">
+                  <p className="text-xs text-muted-foreground mb-1">Responsibilities</p>
+                  <p className="text-foreground">{challenge.hireRewardDetails?.responsibilities || "Not specified"}</p>
+                </div>
+                <div className="rounded-lg border border-border bg-secondary/20 p-3">
+                  <p className="text-xs text-muted-foreground mb-1">Skills Required</p>
+                  <p className="text-foreground">{challenge.hireRewardDetails?.skillsRequired || "Not specified"}</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass p-6">
             <h3 className="font-heading font-semibold text-foreground mb-3">Requirements</h3>
             <ul className="space-y-2">

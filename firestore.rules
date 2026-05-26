@@ -18,6 +18,26 @@ service cloud.firestore {
     function isPro() {
       return getUserData().subscriptionTier == 'pro';
     }
+
+    function isFounder() {
+      return isAuthenticated() && getUserData().role == 'founder';
+    }
+
+    function isSubmissionChallengeFounder(submission) {
+      return isFounder() &&
+        get(/databases/$(database)/documents/challenges/$(submission.challengeId)).data.founderId == request.auth.uid;
+    }
+
+    function isMessageParticipant(messageData) {
+      return isAuthenticated() &&
+        (messageData.founderId == request.auth.uid || messageData.builderId == request.auth.uid);
+    }
+
+    function isValidMessageSender(messageData) {
+      return isMessageParticipant(messageData) &&
+        messageData.senderId == request.auth.uid &&
+        messageData.senderRole == getUserData().role;
+    }
     
     function isDev() {
       return isAuthenticated() && request.auth.token.email.endsWith('@entrext.com');
@@ -60,8 +80,15 @@ service cloud.firestore {
                       getUserData().submissionCount < 2
                     ));
       
-      // Only the talent who submitted can update their work
-      allow update: if isAuthenticated() && isOwner(resource.data.talentId);
+      // Talent can update their own submission.
+      // Founder who owns the challenge can only update review fields.
+      allow update: if isAuthenticated() && (
+                    isOwner(resource.data.talentId) ||
+                    (
+                      isSubmissionChallengeFounder(resource.data) &&
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'score', 'feedback'])
+                    )
+                  );
       
       // Allow devs to delete for testing
       allow delete: if isDev();
@@ -82,9 +109,27 @@ service cloud.firestore {
     
     // Direct Messages (Founder Pro / Builder Pro Feature)
     match /messages/{messageId} {
-      // DMs are a Pro feature according to the pricing pack
-      allow read, create: if isAuthenticated() && isPro();
+      // Founders and builders can only access their own message threads.
+      allow read: if isAuthenticated() && isMessageParticipant(resource.data);
+      allow create: if isAuthenticated() && isValidMessageSender(request.resource.data);
       allow update, delete: if false;
+    }
+
+    // Manual Payout Tracking
+    match /payouts/{payoutId} {
+      allow read: if isAuthenticated() &&
+                  (isPro() || resource.data.founderId == request.auth.uid || resource.data.builderId == request.auth.uid);
+
+      allow create: if isAuthenticated() &&
+                    getUserData().role == 'founder' &&
+                    request.resource.data.founderId == request.auth.uid;
+
+      allow update: if isAuthenticated() &&
+                    getUserData().role == 'founder' &&
+                    resource.data.founderId == request.auth.uid &&
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'transferReference', 'payoutNotes', 'paidAt']);
+
+      allow delete: if isDev();
     }
   }
 }

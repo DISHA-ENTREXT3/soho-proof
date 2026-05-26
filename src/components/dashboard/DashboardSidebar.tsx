@@ -10,6 +10,7 @@ import {
   PlusCircle,
   Briefcase,
   UserCircle,
+  MessageSquare,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useNavigate } from "react-router-dom";
@@ -30,6 +31,7 @@ import {
 const talentItems = [
   { title: "Overview", url: "/dashboard", icon: LayoutDashboard },
   { title: "Challenges", url: "/dashboard/challenges", icon: Swords },
+  { title: "Messages", url: "/dashboard/messages", icon: MessageSquare },
   { title: "Founders", url: "/dashboard/founders", icon: Building2 },
   { title: "Leaderboard", url: "/dashboard/leaderboard", icon: Trophy },
   { title: "Reputation", url: "/dashboard/reputation", icon: Star },
@@ -38,6 +40,7 @@ const talentItems = [
 const founderItems = [
   { title: "Founder Overview", url: "/dashboard/founder", icon: LayoutDashboard },
   { title: "My Challenges", url: "/dashboard/founder/challenges", icon: Briefcase },
+  { title: "Messages", url: "/dashboard/founder/messages", icon: MessageSquare },
   { title: "Talent Discovery", url: "/dashboard/founder/founders", icon: Users },
 ];
 

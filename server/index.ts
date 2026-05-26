@@ -35,7 +35,15 @@ const ChallengeSchema = z.object({
   category: z.string(),
   difficulty: z.string(),
   xpReward: z.number().int().positive(),
-  prize: z.string(),
+  rewardType: z.enum(["Hire", "Money", "Recognition"]),
+  rewardLabel: z.string(),
+  hireRewardDetails: z.object({
+    position: z.string(),
+    compensation: z.string(),
+    responsibilities: z.string(),
+    skillsRequired: z.string(),
+  }).optional(),
+  prize: z.string().optional(),
   deadline: z.string().transform((str) => new Date(str).toISOString()),
   maxParticipants: z.number().int().positive(),
   founderName: z.string(),
@@ -47,6 +55,23 @@ const ChallengeSchema = z.object({
     weight: z.number().int().positive(),
     description: z.string()
   }))
+}).superRefine((data, ctx) => {
+  if (data.rewardType === "Hire") {
+    const details = data.hireRewardDetails;
+    const missing =
+      !details ||
+      !details.position.trim() ||
+      !details.compensation.trim() ||
+      !details.responsibilities.trim() ||
+      !details.skillsRequired.trim();
+    if (missing) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "hireRewardDetails with all fields is required when rewardType is Hire",
+        path: ["hireRewardDetails"],
+      });
+    }
+  }
 });
 
 // --- Routes ---
