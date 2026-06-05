@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight, Calendar, User, Clock, Search } from "lucide-react";
@@ -18,6 +19,11 @@ const BlogList = () => {
 
   return (
     <div className="relative min-h-screen bg-background">
+      <SEO 
+        title="Insights & Engineering Blog | Soho Space" 
+        description="Read the latest insights on skill-based hiring, freelance developers, technical challenges, and startup scaling." 
+        url="/blogs"
+      />
       <Navbar />
       <main className="pt-32 pb-20">
         <div className="container mx-auto px-6">

@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { motion, useScroll, useSpring } from "framer-motion";
 import { useParams, Link } from "react-router-dom";
 import { 
@@ -27,6 +28,7 @@ const BlogDetail = () => {
   if (!post) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
+        <SEO title="Post Not Found | Soho Space" description="The blog post you are looking for does not exist." />
         <div className="text-center">
           <h1 className="text-4xl font-bold mb-4">Post Not Found</h1>
           <Link to="/blogs"><Button>Back to Blogs</Button></Link>
@@ -39,8 +41,80 @@ const BlogDetail = () => {
     .filter(p => p.slug !== slug && p.category === post.category)
     .slice(0, 3);
 
+  // Generate Article Schema for LLMs/Google
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": post.title,
+    "description": post.description,
+    "image": "https://sohospace.entrext.in/logo.png", // Recommended by Google for Rich Snippets
+    "author": {
+      "@type": "Person",
+      "name": post.author
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Entrext Labs",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://sohospace.entrext.in/logo.png"
+      }
+    },
+    "datePublished": "2026-06-05T00:00:00+00:00", // Dynamic date would go here
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": `https://sohospace.entrext.in/blogs/${post.slug}`
+    }
+  };
+
+  // Generate Breadcrumb Schema for Site Hierarchy
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://sohospace.entrext.in/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Insights & Engineering Blog",
+        "item": "https://sohospace.entrext.in/blogs"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": post.title,
+        "item": `https://sohospace.entrext.in/blogs/${post.slug}`
+      }
+    ]
+  };
+
+  // Generate FAQ Schema for Answer Engine Optimization (AEO)
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": post.faqs.map(faq => ({
+      "@type": "Question",
+      "name": faq.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": faq.answer
+      }
+    }))
+  };
+
   return (
     <div className="relative min-h-screen bg-background overflow-x-hidden font-body">
+      <SEO 
+        title={`${post.title} | Soho Space`} 
+        description={post.description} 
+        url={`/blogs/${post.slug}`}
+        schema={[articleSchema, breadcrumbSchema, faqSchema]}
+      />
       {/* Reading Progress Bar */}
       <motion.div 
         className="fixed top-0 left-0 right-0 h-1 bg-primary z-[60] origin-left"

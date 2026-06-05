@@ -1,14 +1,27 @@
+# ==========================================
+# Optimized robots.txt for Soho Space
+# ==========================================
+
 User-agent: *
-Allow: /
+
+# Explicitly allow high-value public pages
+Allow: /$
+Allow: /blogs/
 Allow: /pricing
 Allow: /privacy
 Allow: /terms
-Allow: /cookies
-Allow: /disclaimer
 Allow: /profile/
+
+# Block crawlers from private, authenticated, and action routes
+# This saves "crawl budget" so Google focuses only on public content
 Disallow: /dashboard/
 Disallow: /onboarding/
-Disallow: /auth
+Disallow: /auth/
 Disallow: /login
 
+# Block URLs with sensitive or duplicate-creating parameters
+Disallow: /*?*token=
+Disallow: /*?*session=
+
+# Sitemap location
 Sitemap: https://sohospace.entrext.in/sitemap.xml
