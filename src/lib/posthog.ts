@@ -16,6 +16,8 @@ export function initPostHog() {
     // Capture pageviews manually via React Router to avoid duplicate events
     capture_pageview: false,
     capture_pageleave: true,
+    // Only create person profiles for identified (logged-in) users
+    person_profiles: "identified_only",
     // Session recording
     session_recording: {
       maskAllInputs: false,
