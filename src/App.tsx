@@ -1,5 +1,6 @@
+import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -29,13 +30,22 @@ import CookiePolicy from "./pages/CookiePolicy.tsx";
 import DisclaimerRefund from "./pages/DisclaimerRefund.tsx";
 import BlogList from "./pages/BlogList.tsx";
 import BlogDetail from "./pages/BlogDetail.tsx";
-
-const queryClient = new QueryClient();
-
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/lib/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import MonkFeedWidget from "./components/MonkFeedWidget";
+import { capturePageView } from "@/lib/posthog";
+
+const queryClient = new QueryClient();
+
+/** Fires a PostHog $pageview on every React Router navigation */
+function PostHogPageTracker() {
+  const location = useLocation();
+  useEffect(() => {
+    capturePageView(location.pathname + location.search);
+  }, [location]);
+  return null;
+}
 
 const App = () => (
   <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
@@ -44,6 +54,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <PostHogPageTracker />
           <AuthProvider>
             <Routes>
               <Route path="/" element={<Index />} />

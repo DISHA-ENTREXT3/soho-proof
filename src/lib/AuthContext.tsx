@@ -3,6 +3,7 @@ import { onAuthStateChanged, User, signOut as firebaseSignOut } from "firebase/a
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { AuthContext, UserProfile } from "./AuthContextType";
+import { identifyUser, resetPostHogUser } from "./posthog";
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -40,10 +41,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(firebaseUser);
       if (firebaseUser) {
         await fetchUserProfile(firebaseUser);
+        // Identify the user in PostHog after profile is fetched
+        identifyUser(firebaseUser.uid, {
+          email: firebaseUser.email,
+          name: firebaseUser.displayName,
+        });
       } else {
         setRole(null);
         setProfileData(null);
         setOnboardingComplete(false);
+        // Reset PostHog identity on sign-out
+        resetPostHogUser();
       }
       setLoading(false);
     });
