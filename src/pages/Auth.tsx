@@ -52,15 +52,19 @@ const Auth = () => {
   const [pendingOAuthRole, setPendingOAuthRole] = useState<Role>("talent");
   const [pendingUid, setPendingUid] = useState<string | null>(null);
 
-  const { user, role: authRole } = useAuth();
+  const { user, role: authRole, onboardingComplete, refreshProfile } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect once role is known
+  // Redirect once role and onboarding status are known
   useEffect(() => {
     if (user && authRole && !showRolePicker) {
-      navigate(authRole === "founder" ? "/dashboard/founder" : "/dashboard");
+      if (!onboardingComplete) {
+        navigate(authRole === "founder" ? "/onboarding/founder" : "/onboarding/talent");
+      } else {
+        navigate(authRole === "founder" ? "/dashboard/founder" : "/dashboard");
+      }
     }
-  }, [user, authRole, showRolePicker, navigate]);
+  }, [user, authRole, onboardingComplete, showRolePicker, navigate]);
 
   // ─── Email / Password auth ─────────────────────────────────────────────────
   const handleAuth = async (e: React.FormEvent) => {
@@ -77,12 +81,14 @@ const Auth = () => {
           subscriptionTier: "starter",
           createdAt: serverTimestamp(),
         });
+        await refreshProfile();
         toast({
           title: "Account created!",
           description: `Welcome to Soho Space as a ${selectedRole === "founder" ? "Founder" : "Builder"}!`,
         });
       } else {
         await signInWithEmailAndPassword(auth, email, password);
+        await refreshProfile();
         toast({ title: "Welcome back!", description: "Redirecting…" });
       }
       // AuthProvider re-fetches role → useEffect handles redirect
@@ -146,6 +152,7 @@ const Auth = () => {
         subscriptionTier: "starter",
         createdAt: serverTimestamp(),
       });
+      await refreshProfile();
       toast({
         title: "You're all set!",
         description: `Welcome to Soho Space as a ${pendingOAuthRole === "founder" ? "Founder" : "Builder"}!`,

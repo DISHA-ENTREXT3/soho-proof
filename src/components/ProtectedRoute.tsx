@@ -23,10 +23,18 @@ export const ProtectedRoute = ({ requiredRole }: ProtectedRouteProps) => {
     return <Navigate to="/auth" replace state={{ from: location }} />;
   }
 
-  // Authenticated but onboarding not done → send to the correct onboarding page
-  if (!onboardingComplete && !location.pathname.startsWith("/onboarding")) {
+  // Authenticated but onboarding not done → enforce the role-specific onboarding page
+  if (!onboardingComplete) {
     const onboardingPath = role === "founder" ? "/onboarding/founder" : "/onboarding/talent";
-    return <Navigate to={onboardingPath} replace />;
+    if (location.pathname !== onboardingPath) {
+      return <Navigate to={onboardingPath} replace />;
+    }
+  }
+
+  // Already completed onboarding → redirect away from onboarding pages to main dashboard
+  if (onboardingComplete && location.pathname.startsWith("/onboarding")) {
+    const targetDashboard = role === "founder" ? "/dashboard/founder" : "/dashboard";
+    return <Navigate to={targetDashboard} replace />;
   }
 
   // Wrong role → redirect to their correct dashboard

@@ -203,6 +203,37 @@ app.post("/api/webhooks/dodo", async (req, res) => {
   }
 });
 
+// --- Founder Agent API Endpoints ---
+app.get(["/api/v1/founder-agent/message", "/api/founder-agent/message"], (_req, res) => {
+  res.json({ status: "active", agent: "FounderAgent v1" });
+});
+
+app.post(["/api/v1/founder-agent/message", "/api/founder-agent/message"], async (req, res) => {
+  try {
+    const { message, prompt } = req.body || {};
+    const content = message || prompt || "";
+
+    const responseText = content
+      ? `Founder Agent: Received your message "${content}". How else can I assist you with your startup challenges or hiring?`
+      : "Founder Agent: Ready to assist with your challenges and talent matching.";
+
+    res.json({
+      success: true,
+      response: responseText,
+      message: responseText,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("Founder Agent error:", error);
+    res.status(500).json({ error: "Founder Agent processing failed" });
+  }
+});
+
+// Catch-all 404 for unhandled API routes
+app.all("/api/*", (req, res) => {
+  res.status(404).json({ error: `API endpoint ${req.method} ${req.path} not found` });
+});
+
 export default app;
 
 if (process.env.NODE_ENV !== 'production') {
@@ -210,3 +241,4 @@ if (process.env.NODE_ENV !== 'production') {
     console.log(`Server running on http://localhost:${PORT}`);
   });
 }
+
