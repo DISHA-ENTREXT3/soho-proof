@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Loader2, ArrowRight, User, MapPin, Github, Twitter, Globe, Zap } from "lucide-react";
+import { Loader2, ArrowRight, MapPin, Github, Twitter, Globe, Zap, Briefcase, SearchX, Laptop } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,6 +27,7 @@ export default function TalentOnboarding() {
   const [twitter, setTwitter] = useState("");
   const [portfolio, setPortfolio] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [currentStatus, setCurrentStatus] = useState<"employed" | "freelance" | "unemployed" | "">();
 
   const toggleSkill = (skill: string) => {
     setSelectedSkills((prev) =>
@@ -39,6 +40,10 @@ export default function TalentOnboarding() {
     if (!user) return;
     if (selectedSkills.length === 0) {
       toast({ title: "Pick at least one skill", variant: "destructive" });
+      return;
+    }
+    if (!currentStatus) {
+      toast({ title: "Select your current status", variant: "destructive" });
       return;
     }
     setLoading(true);
@@ -57,6 +62,7 @@ export default function TalentOnboarding() {
         twitter,
         portfolio,
         skills: selectedSkills,
+        currentStatus,
         avatarInitials: initials,
         xp: 0,
         wins: 0,
@@ -142,6 +148,33 @@ export default function TalentOnboarding() {
                   }`}
                 >
                   {skill}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Current Status */}
+          <div className="space-y-2">
+            <Label>Current Status <span className="text-destructive">*</span></Label>
+            <div className="grid grid-cols-3 gap-3">
+              {([
+                { value: "employed",   label: "Employed",   icon: Briefcase, desc: "Working full-time" },
+                { value: "freelance",  label: "Freelance",  icon: Laptop,    desc: "Independent work" },
+                { value: "unemployed", label: "Unemployed", icon: SearchX,   desc: "Open to opportunities" },
+              ] as const).map(({ value, label, icon: Icon, desc }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setCurrentStatus(value)}
+                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all duration-200 ${
+                    currentStatus === value
+                      ? "border-primary bg-primary/10 text-primary shadow-lg shadow-primary/10"
+                      : "border-border text-muted-foreground hover:border-primary/50"
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className="text-xs font-semibold">{label}</span>
+                  <span className="text-[10px] text-center opacity-70 leading-tight">{desc}</span>
                 </button>
               ))}
             </div>
