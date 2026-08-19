@@ -190,3 +190,18 @@ export const useFounderChallenges = (founderId: string | undefined) => {
     enabled: !!founderId,
   });
 };
+
+export const useTalentSubmissions = (talentId: string | undefined) => {
+  return useQuery<Submission[]>({
+    queryKey: ["submissions", "talent", talentId],
+    queryFn: async () => {
+      if (!talentId) return [];
+      const submissionsCol = collection(db, "submissions");
+      const q = query(submissionsCol, where("talentId", "==", talentId));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map((submissionDoc) => normalizeSubmission(submissionDoc.id, submissionDoc.data()));
+    },
+    enabled: !!talentId,
+  });
+};
+
