@@ -5,13 +5,13 @@ import { Button } from '@/components/ui/button';
 const SOCIAL = [
   {
     label: "Instagram",
-    href: "https://www.instagram.com/entrext.labs",
+    href: "https://www.instagram.com/sohospace.entrext?igsh=MXBxOGw4MTd3Y3Q2Mg==",
     hoverBg: "#d62976",
     Icon: Instagram,
   },
   {
     label: "LinkedIn",
-    href: "https://www.linkedin.com/company/entrext/posts/?feedView=all",
+    href: "https://www.linkedin.com/company/sohospace-entrext/",
     hoverBg: "#0072b1",
     Icon: Linkedin,
   },
