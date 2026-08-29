@@ -32,6 +32,16 @@ export default defineConfig(({ mode }) => ({
     target: "es2020",
     chunkSizeWarningLimit: 1000,
     cssCodeSplit: true,
+    modulePreload: {
+      resolveDependencies(filename, deps) {
+        return deps.filter(
+          (dep) =>
+            !dep.includes("vendor-firebase") &&
+            !dep.includes("vendor-recharts") &&
+            !dep.includes("vendor-three")
+        );
+      },
+    },
     rollupOptions: {
       output: {
         manualChunks(id) {
