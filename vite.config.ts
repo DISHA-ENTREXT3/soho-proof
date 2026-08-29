@@ -24,12 +24,25 @@ export default defineConfig(({ mode }) => ({
     },
     dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime", "@tanstack/react-query", "@tanstack/query-core"],
   },
+  esbuild: {
+    drop: ["console", "debugger"],
+  },
   build: {
     chunkSizeWarningLimit: 1000,
+    cssCodeSplit: true,
     rollupOptions: {
       output: {
         manualChunks(id) {
           if (id.includes("node_modules")) {
+            if (id.includes("react-router-dom") || id.includes("react-dom") || id.includes("react/")) {
+              return "vendor-react";
+            }
+            if (id.includes("@radix-ui") || id.includes("lucide-react")) {
+              return "vendor-ui";
+            }
+            if (id.includes("framer-motion")) {
+              return "vendor-framer";
+            }
             if (id.includes("firebase")) {
               return "vendor-firebase";
             }

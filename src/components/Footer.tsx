@@ -38,7 +38,7 @@ const Footer = () => {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <div className="w-7 h-7 rounded-lg overflow-hidden flex items-center justify-center">
-                <img src="/logo.png" alt="Soho Space Logo" className="w-full h-full object-cover" />
+                <img src="/logo.png" alt="Soho Space Logo" width={28} height={28} loading="lazy" decoding="async" className="w-full h-full object-cover" />
               </div>
               <span className="font-heading font-bold text-foreground">Soho Space</span>
             </div>

@@ -29,6 +29,10 @@ export const InfiniteGrid = ({ className }: { className?: string }) => {
   const speedY = 0.5;
 
   useAnimationFrame(() => {
+    // Skip continuous frame animation if user prefers reduced motion or on low-power devices
+    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
     const currentX = gridOffsetX.get();
     const currentY = gridOffsetY.get();
     gridOffsetX.set((currentX + speedX) % 40);

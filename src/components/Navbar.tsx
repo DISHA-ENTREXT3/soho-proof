@@ -30,7 +30,7 @@ const Navbar = () => {
       <div className="container mx-auto flex items-center justify-between h-16 px-6">
         <a href="/" className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center shadow-lg shadow-primary/10">
-            <img src="/logo.png" alt="Soho Space" className="w-full h-full object-cover" />
+            <img src="/logo.png" alt="Soho Space" width={32} height={32} decoding="async" className="w-full h-full object-cover" />
           </div>
           <span className="font-heading font-bold text-lg text-foreground">
             Soho Space
@@ -94,7 +94,8 @@ const Navbar = () => {
           <ModeToggle />
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="text-foreground"
+            aria-label="Toggle Navigation Menu"
+            className="text-foreground p-1"
           >
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>

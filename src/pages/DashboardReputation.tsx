@@ -110,8 +110,11 @@ const DashboardReputation = () => {
 
   // 2. Dynamic Verification Badges
   const badges = (() => {
-    const joinedDateStr = profile?.createdAt 
-      ? new Date(profile.createdAt.toDate ? profile.createdAt.toDate() : profile.createdAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })
+    const rawDate = profile?.createdAt ? ("toDate" in (profile.createdAt as object) ? (profile.createdAt as { toDate: () => Date }).toDate() : profile.createdAt) : null;
+    const joinedDateStr = rawDate instanceof Date 
+      ? rawDate.toLocaleDateString(undefined, { month: 'short', year: 'numeric' })
+      : typeof rawDate === "string" || typeof rawDate === "number"
+      ? new Date(rawDate).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })
       : "—";
 
     const badgeList = [

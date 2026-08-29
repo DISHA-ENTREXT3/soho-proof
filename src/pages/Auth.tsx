@@ -272,7 +272,7 @@ const Auth = () => {
               className="flex justify-center mb-4"
             >
               <div className="w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center shadow-lg shadow-primary/30">
-                <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
+                <img src="/logo.png" alt="Soho Space Logo" width={48} height={48} decoding="async" className="w-full h-full object-cover" />
               </div>
             </motion.div>
             <CardTitle className="text-3xl font-heading font-bold gradient-text">Soho Space</CardTitle>

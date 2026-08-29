@@ -69,7 +69,7 @@ export function DashboardSidebar() {
         <div className="p-4">
           <a href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/20">
-              <img src="/logo.png" alt="Soho Space Logo" className="w-full h-full object-cover" />
+              <img src="/logo.png" alt="Soho Space Logo" width={32} height={32} decoding="async" className="w-full h-full object-cover" />
             </div>
             {!collapsed && (
               <span className="font-heading font-bold text-foreground tracking-tight">Soho Space</span>
