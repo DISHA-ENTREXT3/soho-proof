@@ -26,16 +26,30 @@ export default function MonkFeedWidget() {
       }
     }
 
-    // Ensure the script is loaded
-    const scriptId = 'monkfeed-widget-script';
-    let script = document.getElementById(scriptId) as HTMLScriptElement;
-    
-    if (!script) {
-      script = document.createElement('script');
-      script.id = scriptId;
-      script.src = "https://upvote.entrext.com/widget.js";
-      script.async = true;
-      document.body.appendChild(script);
+    // Ensure the script is loaded after initial paint
+    const loadWidget = () => {
+      const scriptId = 'monkfeed-widget-script';
+      let script = document.getElementById(scriptId) as HTMLScriptElement;
+      
+      if (!script) {
+        script = document.createElement('script');
+        script.id = scriptId;
+        script.src = "https://upvote.entrext.com/widget.js";
+        script.async = true;
+        document.body.appendChild(script);
+      }
+    };
+
+    if ("requestIdleCallback" in window) {
+      const handle = (window as unknown as { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback(loadWidget, { timeout: 3000 });
+      return () => {
+        if ("cancelIdleCallback" in window) {
+          (window as unknown as { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(handle);
+        }
+      };
+    } else {
+      const timer = setTimeout(loadWidget, 2000);
+      return () => clearTimeout(timer);
     }
   }, [userId, email]);
 

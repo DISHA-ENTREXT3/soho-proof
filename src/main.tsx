@@ -5,8 +5,14 @@ import { initPostHog } from "./lib/posthog";
 
 import { HelmetProvider } from "react-helmet-async";
 
-// Initialise PostHog as early as possible so autocapture doesn't miss events
-initPostHog();
+// Initialise PostHog asynchronously after initial render to avoid blocking paint
+if (typeof window !== "undefined") {
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(() => initPostHog());
+  } else {
+    setTimeout(initPostHog, 1500);
+  }
+}
 
 createRoot(document.getElementById("root")!).render(
   <HelmetProvider>
