@@ -7,8 +7,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/lib/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { LazyMotion } from "framer-motion";
 import MonkFeedWidget from "./components/MonkFeedWidget";
 import { capturePageView } from "@/lib/posthog";
+
+const loadFeatures = () => import("@/lib/framer-features").then((res) => res.default);
 
 // Static import for Landing page for instant LCP
 import Index from "./pages/Index.tsx";
@@ -59,71 +62,73 @@ function PostHogPageTracker() {
 
 const App = () => (
   <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <PostHogPageTracker />
-          <AuthProvider>
-            <Suspense fallback={<PageFallback />}>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/login" element={<Auth />} />
-                <Route path="/pricing" element={<Pricing />} />
-                <Route path="/privacy" element={<PrivacyPolicy />} />
-                <Route path="/terms" element={<TermsConditions />} />
-                <Route path="/cookies" element={<CookiePolicy />} />
-                <Route path="/disclaimer" element={<DisclaimerRefund />} />
-                <Route path="/blogs" element={<BlogList />} />
-                <Route path="/blogs/:slug" element={<BlogDetail />} />
+    <LazyMotion features={loadFeatures} strict={false}>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <PostHogPageTracker />
+            <AuthProvider>
+              <Suspense fallback={<PageFallback />}>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/login" element={<Auth />} />
+                  <Route path="/pricing" element={<Pricing />} />
+                  <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route path="/terms" element={<TermsConditions />} />
+                  <Route path="/cookies" element={<CookiePolicy />} />
+                  <Route path="/disclaimer" element={<DisclaimerRefund />} />
+                  <Route path="/blogs" element={<BlogList />} />
+                  <Route path="/blogs/:slug" element={<BlogDetail />} />
 
-                {/* Onboarding — requires auth, no role guard, skips onboarding check */}
-                <Route element={<ProtectedRoute />}>
-                  <Route path="/onboarding/talent" element={<TalentOnboarding />} />
-                  <Route path="/onboarding/founder" element={<FounderOnboarding />} />
-                </Route>
-                <Route element={<ProtectedRoute />}>
-                  <Route path="/dashboard" element={<DashboardLayout />}>
-
-                    {/* Shared routes — accessible by any authenticated user */}
-                    <Route path="settings" element={<DashboardSettings />} />
-
-                    {/* Talent-only routes */}
-                    <Route element={<ProtectedRoute requiredRole="talent" />}>
-                      <Route index element={<DashboardOverview />} />
-                      <Route path="challenges" element={<DashboardChallenges />} />
-                      <Route path="challenges/:id" element={<ChallengeDetail />} />
-                      <Route path="messages" element={<FounderMessages />} />
-                      <Route path="founders" element={<FoundersDirectory />} />
-                      <Route path="leaderboard" element={<DashboardLeaderboard />} />
-                      <Route path="reputation" element={<DashboardReputation />} />
-                    </Route>
-
-                    {/* Founder-only routes */}
-                    <Route path="founder" element={<ProtectedRoute requiredRole="founder" />}>
-                      <Route index element={<FounderOverview />} />
-                      <Route path="profile" element={<FounderProfileCreation />} />
-                      <Route path="challenges" element={<DashboardChallenges />} />
-                      <Route path="challenges/create" element={<CreateChallenge />} />
-                      <Route path="challenges/:id/manage" element={<ManageChallenge />} />
-                      <Route path="messages" element={<FounderMessages />} />
-                      <Route path="founders" element={<FoundersDirectory />} />
-                    </Route>
-
+                  {/* Onboarding — requires auth, no role guard, skips onboarding check */}
+                  <Route element={<ProtectedRoute />}>
+                    <Route path="/onboarding/talent" element={<TalentOnboarding />} />
+                    <Route path="/onboarding/founder" element={<FounderOnboarding />} />
                   </Route>
-                </Route>
-                <Route path="/profile/:id" element={<PublicProfile />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-            <MonkFeedWidget />
-          </AuthProvider>
+                  <Route element={<ProtectedRoute />}>
+                    <Route path="/dashboard" element={<DashboardLayout />}>
 
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+                      {/* Shared routes — accessible by any authenticated user */}
+                      <Route path="settings" element={<DashboardSettings />} />
+
+                      {/* Talent-only routes */}
+                      <Route element={<ProtectedRoute requiredRole="talent" />}>
+                        <Route index element={<DashboardOverview />} />
+                        <Route path="challenges" element={<DashboardChallenges />} />
+                        <Route path="challenges/:id" element={<ChallengeDetail />} />
+                        <Route path="messages" element={<FounderMessages />} />
+                        <Route path="founders" element={<FoundersDirectory />} />
+                        <Route path="leaderboard" element={<DashboardLeaderboard />} />
+                        <Route path="reputation" element={<DashboardReputation />} />
+                      </Route>
+
+                      {/* Founder-only routes */}
+                      <Route path="founder" element={<ProtectedRoute requiredRole="founder" />}>
+                        <Route index element={<FounderOverview />} />
+                        <Route path="profile" element={<FounderProfileCreation />} />
+                        <Route path="challenges" element={<DashboardChallenges />} />
+                        <Route path="challenges/create" element={<CreateChallenge />} />
+                        <Route path="challenges/:id/manage" element={<ManageChallenge />} />
+                        <Route path="messages" element={<FounderMessages />} />
+                        <Route path="founders" element={<FoundersDirectory />} />
+                      </Route>
+
+                    </Route>
+                  </Route>
+                  <Route path="/profile/:id" element={<PublicProfile />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+              <MonkFeedWidget />
+            </AuthProvider>
+
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </LazyMotion>
   </ThemeProvider>
 );
 

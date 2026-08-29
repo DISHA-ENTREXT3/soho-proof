@@ -45,14 +45,14 @@ const Footer = () => {
             <p className="text-sm text-muted-foreground leading-relaxed mb-4">
               Proof-of-execution hiring for the modern workforce.
             </p>
-            <div className="text-[10px] uppercase tracking-widest font-bold text-primary/60">
+            <div className="text-[10px] uppercase tracking-widest font-bold text-primary/90">
               Made by Entrext Labs
             </div>
           </div>
 
           {COLUMNS.map((col) => (
             <div key={col.title}>
-              <h4 className="font-heading font-semibold text-sm text-foreground mb-3">{col.title}</h4>
+              <h3 className="font-heading font-semibold text-sm text-foreground mb-3">{col.title}</h3>
               <ul className="space-y-2">
                 {col.links.map((link) => (
                   <li key={link.label}>

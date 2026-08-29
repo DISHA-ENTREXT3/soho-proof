@@ -26,8 +26,10 @@ export default defineConfig(({ mode }) => ({
   },
   esbuild: {
     drop: ["console", "debugger"],
+    target: "es2020",
   },
   build: {
+    target: "es2020",
     chunkSizeWarningLimit: 1000,
     cssCodeSplit: true,
     rollupOptions: {

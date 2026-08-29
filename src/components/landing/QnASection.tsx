@@ -45,6 +45,7 @@ const QnASection = () => {
   return (
     <section className="section-padding relative overflow-hidden bg-transparent">
       <div className="container mx-auto relative z-10">
+        <h2 className="sr-only">Platform Overview</h2>
         <motion.div
            variants={container}
            initial="hidden"
