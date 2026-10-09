@@ -56,7 +56,7 @@ const builderPlans = [
     badge: null,
     features: [
       "Browse all active challenges",
-      "Submit up to 2 entries",
+      "Submit up to 4 entries",
       "Public proof profile",
       "Standard XP gain",
       "Community access",

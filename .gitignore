@@ -30,3 +30,6 @@ soho-space-firebase-adminsdk-*.json
 # Playwright
 playwright-report/
 test-results/
+
+# Scratch files
+scratch/

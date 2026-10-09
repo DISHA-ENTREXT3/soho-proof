@@ -43,6 +43,11 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.token.email.endsWith('@entrext.com');
     }
 
+    // Alias for admin panel use
+    function isAdmin() {
+      return isDev();
+    }
+
     // Challenges Collection
     match /challenges/{challengeId} {
       // Anyone can view challenges
@@ -71,13 +76,13 @@ service cloud.firestore {
       allow read: if true;
       
       // Only talent can submit
-      // Starter Builders: Limited to 2 submissions
+      // Starter Builders: Limited to 4 submissions
       // Pro Builders: Unlimited
       allow create: if isAuthenticated() && 
                     getUserData().role == 'talent' && 
                     (isPro() || (
                       !('submissionCount' in getUserData()) || 
-                      getUserData().submissionCount < 2
+                      getUserData().submissionCount < 4
                     ));
       
       // Talent can update their own submission.
@@ -103,8 +108,15 @@ service cloud.firestore {
       // Protection: Users cannot change their own subscriptionTier or role once set.
       // This ensures pro status is only granted via the payment webhook.
       allow create: if isAuthenticated() && isOwner(userId);
-      allow update: if isAuthenticated() && isOwner(userId) && 
-                    (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['subscriptionTier', 'role']));
+      allow update: if (
+                      // Normal users can edit their own profile (but not tier/role)
+                      (isAuthenticated() && isOwner(userId) && 
+                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['subscriptionTier', 'role']))
+                      ||
+                      // Admins can update featured, badge, weeklySpotlight fields for any user
+                      (isAdmin() && 
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['featured', 'badge', 'weeklySpotlight']))
+                    );
     }
     
     // Direct Messages (Founder Pro / Builder Pro Feature)
@@ -130,6 +142,16 @@ service cloud.firestore {
                     request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'transferReference', 'payoutNotes', 'paidAt']);
 
       allow delete: if isDev();
+    }
+
+    // Waitlist — public email collection from hero section
+    match /waitlist/{entryId} {
+      // Anyone can join the waitlist (no auth required)
+      allow create: if request.resource.data.keys().hasAll(['email', 'role', 'source'])
+                    && request.resource.data.email is string
+                    && request.resource.data.email.size() > 3;
+      // Only admins can read/export the list
+      allow read, update, delete: if isAdmin();
     }
   }
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Plus, Users, Trophy, Swords, ArrowUpRight, MessageSquare, Loader2, Building2, Globe } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -8,6 +9,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/use-profile";
 import { useFounderStats, useFounderChallenges } from "@/hooks/use-challenges";
 import type { FounderProfile } from "@/hooks/use-profile";
+import { auditFounderSubscriptionStatus } from "@/lib/founder-subscription";
 
 const container = {
   hidden: {},
@@ -23,6 +25,13 @@ const FounderOverview = () => {
   const { profile, profileLoading } = useProfile();
   const { data: founderStats } = useFounderStats(user?.uid);
   const { data: challenges, isLoading: challengesLoading } = useFounderChallenges(user?.uid);
+
+  // Run subscription audit on dashboard load to enforce tier limits & grace period
+  useEffect(() => {
+    if (user?.uid && !challengesLoading && challenges && challenges.length > 0) {
+      auditFounderSubscriptionStatus(user.uid).catch(console.error);
+    }
+  }, [user?.uid, challengesLoading, challenges]);
 
   if (profileLoading) {
     return (
@@ -158,7 +167,10 @@ const FounderOverview = () => {
               <div key={challenge.id} className="glass p-5 flex flex-col h-full border border-primary/10">
                 <div className="flex justify-between items-start mb-2">
                   <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
-                    challenge.status === 'Completed' ? 'bg-muted text-muted-foreground' : 'bg-primary/20 text-primary'
+                    challenge.status === 'Completed' ? 'bg-muted text-muted-foreground'
+                    : challenge.status === 'Cancelled' ? 'bg-amber-500/20 text-amber-500'
+                    : challenge.status === 'Frozen' ? 'bg-red-500/20 text-red-400'
+                    : 'bg-primary/20 text-primary'
                   }`}>
                     {challenge.status}
                   </span>

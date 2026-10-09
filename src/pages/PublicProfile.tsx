@@ -6,7 +6,8 @@ import { useParams, Link } from "react-router-dom";
 import {
   Trophy, Zap, Building2, Globe, ArrowLeft,
   Github, Twitter, Linkedin, MapPin, Flame, Swords,
-  Loader2, AlertCircle, Clock, Users,
+  Loader2, AlertCircle, Clock, Users, Crown, Target,
+  TrendingUp, CheckCircle2, BarChart3,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,8 @@ import { collection, doc, getDoc, getDocs, orderBy, query, where } from "firebas
 import type { TalentProfile, FounderProfile } from "@/hooks/use-profile";
 import type { Challenge, ChallengeStatus } from "@/types/challenge";
 import { useAuth } from "@/hooks/use-auth";
+import { ShareProfileButton } from "@/components/ui/ShareProfileButton";
+import { useBuilderPublicStats, useFounderPublicStats } from "@/hooks/use-public-stats";
 
 type ProfileData = (TalentProfile | FounderProfile) & { uid: string };
 
@@ -102,6 +105,16 @@ const PublicProfile = () => {
     fetch();
   }, [id]);
 
+  // Stats hooks — MUST be called unconditionally (Rules of Hooks).
+  // Pass empty string when stats are not enabled; the hook does an early return internally.
+  const profileShowStats = !!(profile as unknown as { showPublicStats?: boolean } | null)?.showPublicStats;
+  const profileIsFounder = profile?.role === "founder";
+  const profileXP = (profile as TalentProfile | null)?.xp ?? 0;
+  const { stats: builderStats, loading: builderStatsLoading } =
+    useBuilderPublicStats(!profileIsFounder && profileShowStats ? (profile?.uid ?? "") : "", profileXP);
+  const { stats: founderStats, loading: founderStatsLoading } =
+    useFounderPublicStats(profileIsFounder && profileShowStats ? (profile?.uid ?? "") : "");
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -123,6 +136,8 @@ const PublicProfile = () => {
   const isFounder = profile.role === "founder";
   const fp = profile as FounderProfile;
   const tp = profile as TalentProfile;
+
+  const showStats = profileShowStats;
 
   const initials = profile.name
     ? profile.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()
@@ -186,7 +201,7 @@ const PublicProfile = () => {
               )}
 
               {/* Social links */}
-              <div className="flex justify-center gap-3 mt-5 mb-6">
+              <div className="flex justify-center gap-3 mt-5">
                 {githubUrl && (
                   <a href={githubUrl} target="_blank" rel="noopener noreferrer">
                     <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-secondary/50 border border-border">
@@ -208,6 +223,20 @@ const PublicProfile = () => {
                     </Button>
                   </a>
                 )}
+              </div>
+
+              {/* Share profile — builders & founders can share to social media */}
+              <div className="flex justify-center mt-4 mb-5">
+                <ShareProfileButton
+                  profileId={profile.uid}
+                  name={profile.name || ""}
+                  role={profile.role as "talent" | "founder"}
+                  tagline={
+                    isFounder
+                      ? `Founder${fp.companyName ? ` @ ${fp.companyName}` : ""}${fp.industry ? ` · ${fp.industry}` : ""}`
+                      : `Builder${tp.xp ? ` · ${tp.xp.toLocaleString()} XP` : ""}${tp.wins ? ` · ${tp.wins} wins` : ""}`
+                  }
+                />
               </div>
 
               {/* Meta */}
@@ -290,6 +319,128 @@ const PublicProfile = () => {
                 )}
               </div>
             </div>
+
+            {/* ── Public Stats Card (opt-in) ── */}
+            {showStats && (
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35 }}
+                className="glass p-8 border-primary/10 relative overflow-hidden"
+              >
+                {/* Subtle background glow */}
+                <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+
+                <div className="flex items-center gap-2 mb-6">
+                  {isFounder
+                    ? <BarChart3 size={18} className="text-blue-400" />
+                    : <Crown size={18} className="text-yellow-400" />}
+                  <h3 className="text-xl font-heading font-bold">
+                    {isFounder ? "Challenge Portfolio" : "Rankings & Stats"}
+                  </h3>
+                  <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-bold uppercase tracking-widest">
+                    Public
+                  </span>
+                </div>
+
+                {/* BUILDER stats */}
+                {!isFounder && (
+                  builderStatsLoading ? (
+                    <div className="flex justify-center py-6"><Loader2 className="animate-spin text-primary" size={24} /></div>
+                  ) : builderStats ? (
+                    <div className="space-y-5">
+                      {/* Rank hero */}
+                      <div className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-yellow-400/10 to-primary/10 border border-yellow-400/20">
+                        <div className="w-14 h-14 rounded-2xl bg-yellow-400/20 flex items-center justify-center flex-shrink-0">
+                          <Crown size={26} className="text-yellow-400" />
+                        </div>
+                        <div>
+                          <p className="text-3xl font-heading font-black text-foreground">
+                            #{builderStats.globalRank}
+                            <span className="text-sm font-normal text-muted-foreground ml-2">of {builderStats.totalBuilders} builders</span>
+                          </p>
+                          <p className="text-sm text-yellow-400 font-semibold">
+                            Top {100 - builderStats.topPercentile}% on Soho Space
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Stats grid */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {[
+                          { label: "XP Earned", value: (builderStats.xp || 0).toLocaleString(), icon: Zap, color: "text-primary" },
+                          { label: "Challenges", value: builderStats.submissionCount, icon: Target, color: "text-blue-400" },
+                          { label: "Completed", value: builderStats.completedChallenges, icon: CheckCircle2, color: "text-emerald-400" },
+                          { label: "Wins", value: builderStats.winsCount, icon: Trophy, color: "text-yellow-400" },
+                        ].map(s => (
+                          <div key={s.label} className="p-3 rounded-xl bg-secondary/40 text-center">
+                            <s.icon size={16} className={`${s.color} mx-auto mb-1`} />
+                            <p className="text-xl font-heading font-bold">{s.value}</p>
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{s.label}</p>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* XP Progress bar toward next rank */}
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>XP Progress</span>
+                          <span className="font-semibold text-primary">{(builderStats.xp || 0).toLocaleString()} XP</span>
+                        </div>
+                        <div className="w-full h-2 rounded-full bg-secondary overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${Math.min(((builderStats.xp || 0) % 1000) / 10, 100)}%` }}
+                            transition={{ duration: 1, delay: 0.5 }}
+                            className="h-full bg-gradient-to-r from-primary to-accent rounded-full"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ) : null
+                )}
+
+                {/* FOUNDER stats */}
+                {isFounder && (
+                  founderStatsLoading ? (
+                    <div className="flex justify-center py-6"><Loader2 className="animate-spin text-primary" size={24} /></div>
+                  ) : founderStats ? (
+                    <div className="space-y-5">
+                      {/* Summary row */}
+                      <div className="flex items-center gap-4 p-4 rounded-2xl bg-blue-500/10 border border-blue-400/20">
+                        <div className="w-14 h-14 rounded-2xl bg-blue-400/20 flex items-center justify-center flex-shrink-0">
+                          <Building2 size={26} className="text-blue-400" />
+                        </div>
+                        <div>
+                          <p className="text-3xl font-heading font-black">
+                            {founderStats.totalChallengesPosted}
+                            <span className="text-sm font-normal text-muted-foreground ml-2">challenges posted</span>
+                          </p>
+                          <p className="text-sm text-blue-400 font-semibold">
+                            {founderStats.openChallenges} open · {founderStats.completedChallenges} completed
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Stats grid */}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {[
+                          { label: "Total Challenges", value: founderStats.totalChallengesPosted, icon: Zap, color: "text-primary" },
+                          { label: "Participants",      value: founderStats.totalParticipants,      icon: Users, color: "text-blue-400" },
+                          { label: "Submissions",       value: founderStats.totalSubmissionsReceived, icon: TrendingUp, color: "text-emerald-400" },
+                        ].map(s => (
+                          <div key={s.label} className="p-3 rounded-xl bg-secondary/40 text-center">
+                            <s.icon size={16} className={`${s.color} mx-auto mb-1`} />
+                            <p className="text-xl font-heading font-bold">{s.value}</p>
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{s.label}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null
+                )}
+              </motion.div>
+            )}
 
             {/* Talent — skills */}
             {!isFounder && tp.skills?.length > 0 && (

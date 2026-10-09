@@ -18,6 +18,7 @@ import { toast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp, doc, updateDoc, increment, getDoc } from "firebase/firestore";
 import { useAuth } from "@/hooks/use-auth";
+import { checkFounderChallengeLimit } from "@/lib/founder-subscription";
 
 interface CriterionForm {
   name: string;
@@ -98,13 +99,12 @@ const CreateChallenge = () => {
       return;
     }
 
-    // Pricing limit check
-    const snap = await getDoc(doc(db, "users", user.uid));
-    const userData = snap.data();
-    if (userData?.subscriptionTier !== 'pro' && (userData?.challengeCount ?? 0) >= 1) {
+    // Free Tier vs Pro Tier Limit Check
+    const limitCheck = await checkFounderChallengeLimit(user.uid);
+    if (!limitCheck.allowed) {
       toast({ 
-        title: "Limit reached", 
-        description: "Starter Trial founders can only post 1 challenge. Upgrade to Founder Pro for unlimited access!", 
+        title: "Free Tier Limit Reached", 
+        description: limitCheck.reason || "Free tier founders are limited to 1 active challenge. Upgrade to Pro for unlimited challenges!", 
         variant: "destructive" 
       });
       return;
@@ -112,6 +112,9 @@ const CreateChallenge = () => {
 
     setLoading(true);
     try {
+      const userSnap = await getDoc(doc(db, "users", user.uid));
+      const userData = userSnap.data();
+
       const finalRewardLabel =
         rewardType === "Hire"
           ? (rewardLabel.trim() || `Hiring for ${hirePosition.trim()} (${hireCompensation.trim()})`)

@@ -38,6 +38,10 @@ const DashboardSettings = () => {
   const [linkedin, setLinkedin] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // Privacy preferences
+  const [showPublicStats, setShowPublicStats] = useState(false);
+  const [savingPrivacy, setSavingPrivacy] = useState(false);
+
   // Pre-fill from Firestore profile
   useEffect(() => {
     if (!profile) return;
@@ -45,6 +49,7 @@ const DashboardSettings = () => {
     setBio(profile.bio ?? "");
     setLocation(profile.location ?? "");
     setTwitter(profile.twitter ?? "");
+    setShowPublicStats(!!(profile as unknown as { showPublicStats?: boolean }).showPublicStats);
     if (!isFounder) {
       setGithub(tp?.github ?? "");
       setPortfolio(tp?.portfolio ?? "");
@@ -294,6 +299,66 @@ const DashboardSettings = () => {
             <Button variant="outline" className="border-rose-500/20 text-rose-500 hover:bg-rose-500/10 hover:text-rose-500 transition-colors">
               Delete Account
             </Button>
+          </div>
+
+          {/* Privacy — Public Stats */}
+          <div className="glass p-8 space-y-5">
+            <div>
+              <h3 className="font-heading font-bold text-xl flex items-center gap-2">
+                <Shield className="w-5 h-5 text-primary" /> Privacy &amp; Public Profile
+              </h3>
+              <p className="text-muted-foreground text-sm mt-1">
+                Control what visitors see when they visit your public profile link.
+              </p>
+            </div>
+
+            <Separator className="bg-white/5" />
+
+            <div className="space-y-4">
+              <div className="flex items-start justify-between p-4 rounded-xl bg-secondary/30 border border-white/5 gap-4">
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold">
+                    {isFounder ? "Show Challenge Portfolio Stats" : "Show Rankings & Challenge Stats"}
+                  </p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {isFounder
+                      ? "Display your total challenges posted, participants attracted, and submission counts on your public profile."
+                      : "Display your global XP rank, top-percentile, total submissions, completed challenges and wins on your public profile."}
+                  </p>
+                  {showPublicStats && (
+                    <p className="text-[11px] text-primary font-medium mt-1">
+                      ✓ Your stats are currently visible on your public profile
+                    </p>
+                  )}
+                </div>
+                <Switch
+                  id="show-public-stats"
+                  checked={showPublicStats}
+                  onCheckedChange={async (checked) => {
+                    setShowPublicStats(checked);
+                    if (!user) return;
+                    setSavingPrivacy(true);
+                    try {
+                      await updateDoc(doc(db, "users", user.uid), { showPublicStats: checked });
+                      toast({
+                        title: checked ? "Stats now public ✓" : "Stats hidden",
+                        description: checked
+                          ? "Your ranking and challenge stats are visible on your profile."
+                          : "Your stats are now hidden from public view.",
+                      });
+                    } finally {
+                      setSavingPrivacy(false);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+
+            {savingPrivacy && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Loader2 className="w-3 h-3 animate-spin" /> Saving preference...
+              </p>
+            )}
           </div>
         </TabsContent>
 

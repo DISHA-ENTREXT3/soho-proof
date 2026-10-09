@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Clock,
@@ -11,6 +11,8 @@ import {
   Send,
   CheckCircle2,
   AlertCircle,
+  Lock,
+  Crown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +27,8 @@ import { toast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase";
 import { addDoc, collection, doc, updateDoc, increment, serverTimestamp, getDoc } from "firebase/firestore";
 import { useAuth } from "@/hooks/use-auth";
+import { ShareChallengeButtons } from "@/components/ShareChallengeButtons";
+import { checkBuilderSubmissionLimit } from "@/lib/builder-subscription";
 
 const categoryColors: Record<ChallengeCategory, string> = {
   Tech: "bg-blue-500/20 text-blue-400",
@@ -39,6 +43,8 @@ const statusColors: Record<ChallengeStatus, string> = {
   "In Progress": "bg-blue-400/20 text-blue-400",
   Judging: "bg-amber-400/20 text-amber-400",
   Completed: "bg-muted text-muted-foreground",
+  Cancelled: "bg-amber-500/20 text-amber-500",
+  Frozen: "bg-red-500/20 text-red-400",
 };
 
 const submissionStatusIcons = {
@@ -49,6 +55,7 @@ const submissionStatusIcons = {
 
 const ChallengeDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { data: challenge, isLoading, isError } = useChallenge(id);
   const { data: submissions = [] } = useSubmissions(id);
@@ -95,24 +102,26 @@ const ChallengeDetail = () => {
     }
     
     if (!user) {
-      toast({ title: "Error", description: "You must be logged in to submit work.", variant: "destructive" });
+      toast({ title: "Authentication required", description: "Please log in or sign up with 1-click to submit your proof of work!" });
+      navigate(`/auth?redirect=/challenges/${id}`);
       return;
     }
 
-    // Pricing limit check
-    const snap = await getDoc(doc(db, "users", user.uid));
-    const userData = snap.data();
-    if (userData?.subscriptionTier !== 'pro' && (userData?.submissionCount ?? 0) >= 2) {
-      toast({ 
-        title: "Limit reached", 
-        description: "Explorer Trial builders can only submit 2 entries total. Upgrade to Builder Pro for unlimited access!", 
-        variant: "destructive" 
+    // Smart tier-aware limit check
+    const isAdminChallenge = !!challenge.postedByAdmin;
+    const limitResult = await checkBuilderSubmissionLimit(user.uid, isAdminChallenge);
+
+    if (!limitResult.allowed) {
+      toast({
+        title: isAdminChallenge ? "Limit reached" : "Monthly limit reached",
+        description: limitResult.reason ?? "Upgrade to Builder Pro for unlimited access!",
+        variant: "destructive",
       });
       return;
     }
 
     try {
-      // 1. Add submission
+      // 1. Add submission (include source info for auditing)
       await addDoc(collection(db, "submissions"), {
         challengeId: id,
         talentId: user.uid,
@@ -122,6 +131,7 @@ const ChallengeDetail = () => {
         link: submissionLink,
         submittedAt: new Date().toISOString(),
         status: "Pending",
+        isAdminChallenge: !!challenge.postedByAdmin,
       });
 
       // 2. Increment participant count on challenge
@@ -158,7 +168,16 @@ const ChallengeDetail = () => {
         <div className="flex flex-wrap items-center gap-2 mb-3">
           <Badge className={`${categoryColors[challenge.category]} border-0 text-xs`}>{challenge.category}</Badge>
           <Badge className={`${statusColors[challenge.status]} border-0 text-xs`}>{challenge.status}</Badge>
-          <span className="text-xs text-muted-foreground ml-auto">{challenge.difficulty}</span>
+          <span className="text-xs text-muted-foreground">{challenge.difficulty}</span>
+          <div className="ml-auto">
+            <ShareChallengeButtons
+              challengeId={challenge.id}
+              title={challenge.title}
+              companyName={challenge.companyName}
+              rewardType={challenge.rewardType}
+              rewardLabel={challenge.rewardLabel}
+            />
+          </div>
         </div>
 
         <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">{challenge.title}</h1>

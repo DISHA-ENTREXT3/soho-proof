@@ -11,7 +11,7 @@ const SOCIAL = [
   },
   {
     label: "LinkedIn",
-    href: "https://www.linkedin.com/company/sohospace-entrext/",
+    href: "https://www.linkedin.com/company/sohospace-entrxt/?viewAsMember=true",
     hoverBg: "#0072b1",
     Icon: Linkedin,
   },

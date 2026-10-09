@@ -42,6 +42,19 @@ const CookiePolicy = lazy(() => import("./pages/CookiePolicy.tsx"));
 const DisclaimerRefund = lazy(() => import("./pages/DisclaimerRefund.tsx"));
 const BlogList = lazy(() => import("./pages/BlogList.tsx"));
 const BlogDetail = lazy(() => import("./pages/BlogDetail.tsx"));
+const PublicChallengeDetail = lazy(() => import("./pages/PublicChallengeDetail.tsx"));
+const CommunityPage = lazy(() => import("./pages/CommunityPage.tsx"));
+
+// Admin pages
+const AdminLayout = lazy(() => import("./pages/admin/AdminLayout.tsx"));
+const AdminOverview = lazy(() => import("./pages/admin/AdminOverview.tsx"));
+const AdminChallenges = lazy(() => import("./pages/admin/AdminChallenges.tsx"));
+const AdminBuilders = lazy(() => import("./pages/admin/AdminBuilders.tsx"));
+const AdminFounders = lazy(() => import("./pages/admin/AdminFounders.tsx"));
+const AdminCommunity = lazy(() => import("./pages/admin/AdminCommunity.tsx"));
+const AdminFeatured = lazy(() => import("./pages/admin/AdminFeatured.tsx"));
+const AdminReports = lazy(() => import("./pages/admin/AdminReports.tsx"));
+const AdminWaitlist = lazy(() => import("./pages/admin/AdminWaitlist.tsx"));
 
 const PageFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -82,6 +95,8 @@ const App = () => (
                   <Route path="/disclaimer" element={<DisclaimerRefund />} />
                   <Route path="/blogs" element={<BlogList />} />
                   <Route path="/blogs/:slug" element={<BlogDetail />} />
+                  <Route path="/challenges/:id" element={<PublicChallengeDetail />} />
+                  <Route path="/community" element={<CommunityPage />} />
 
                   {/* Onboarding — requires auth, no role guard, skips onboarding check */}
                   <Route element={<ProtectedRoute />}>
@@ -119,6 +134,19 @@ const App = () => (
                     </Route>
                   </Route>
                   <Route path="/profile/:id" element={<PublicProfile />} />
+
+                  {/* Admin Panel — restricted to @entrext.com emails inside AdminLayout */}
+                  <Route path="/admin" element={<AdminLayout />}>
+                    <Route index element={<AdminOverview />} />
+                    <Route path="challenges" element={<AdminChallenges />} />
+                    <Route path="builders" element={<AdminBuilders />} />
+                    <Route path="founders" element={<AdminFounders />} />
+                    <Route path="community" element={<AdminCommunity />} />
+                    <Route path="featured" element={<AdminFeatured />} />
+                    <Route path="reports" element={<AdminReports />} />
+                    <Route path="waitlist" element={<AdminWaitlist />} />
+                  </Route>
+
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>

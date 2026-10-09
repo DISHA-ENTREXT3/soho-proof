@@ -29,6 +29,8 @@ const statusColors: Record<ChallengeStatus, string> = {
   "In Progress": "bg-blue-400/20 text-blue-400",
   Judging: "bg-amber-400/20 text-amber-400",
   Completed: "bg-muted text-muted-foreground",
+  Cancelled: "bg-amber-500/20 text-amber-500",
+  Frozen: "bg-red-500/20 text-red-400",
 };
 
 const difficultyColors: Record<ChallengeDifficulty, string> = {

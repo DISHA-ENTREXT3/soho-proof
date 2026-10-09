@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, ExternalLink, Trophy, Loader2, MessageSquare } from "lucide-react";
+import { ArrowLeft, ExternalLink, Trophy, Loader2, MessageSquare, Ban, Trash2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useChallenge, useSubmissions } from "@/hooks/use-challenges";
@@ -9,6 +9,8 @@ import { db } from "@/lib/firebase";
 import { writeBatch, doc, increment, addDoc, collection, serverTimestamp, getDocs, query, where, updateDoc } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
 import { Submission, Payout } from "@/types/challenge";
+import { ShareChallengeButtons } from "@/components/ShareChallengeButtons";
+import { cancelChallenge, deleteChallenge } from "@/lib/founder-subscription";
 
 const FEEDBACK_OPTIONS = [
   "Amazing",
@@ -197,18 +199,108 @@ const ManageChallenge = () => {
     }
   };
 
+  const handleCancel = async () => {
+    if (!window.confirm("Are you sure you want to stop/cancel this challenge? It will no longer accept submissions.")) return;
+    try {
+      await cancelChallenge(challenge.id);
+      toast({ title: "Challenge stopped", description: "The challenge has been marked as Cancelled." });
+      navigate("/dashboard/founder/challenges");
+    } catch {
+      toast({ title: "Failed to cancel challenge", variant: "destructive" });
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm("Are you sure you want to permanently delete this challenge? This action cannot be undone.")) return;
+    try {
+      await deleteChallenge(challenge.id, user?.uid);
+      toast({ title: "Challenge deleted", description: "The challenge has been permanently deleted." });
+      navigate("/dashboard/founder/challenges");
+    } catch {
+      toast({ title: "Failed to delete challenge", variant: "destructive" });
+    }
+  };
+
   return (
     <div className="max-w-4xl space-y-6">
       <Link to="/dashboard/founder" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
         <ArrowLeft size={16} /> Back to Dashboard
       </Link>
 
-      <div className="glass p-6">
-        <h1 className="font-heading text-2xl font-bold mb-2">Manage: {challenge.title}</h1>
-        <div className="flex gap-4 text-sm text-muted-foreground">
-          <span>Status: <strong className={challenge.status === 'Completed' ? '' : 'text-primary'}>{challenge.status}</strong></span>
-          <span>Submissions: <strong>{submissions?.length || 0}</strong></span>
-          <span>Reward: <strong>{challenge.xpReward} XP</strong></span>
+      {/* Grace Warning / Frozen Banner */}
+      {challenge.inGracePeriod && (
+        <div className="glass p-4 rounded-2xl border border-amber-500/40 bg-amber-500/10 text-amber-300 flex items-center justify-between gap-4 text-sm">
+          <div className="flex items-center gap-2">
+            <AlertTriangle size={18} className="shrink-0 text-amber-400" />
+            <span>
+              <strong>7-Day Grace Period Warning:</strong> Your Pro subscription has expired. This challenge will remain active until{" "}
+              <strong>{challenge.graceExpiresAt ? new Date(challenge.graceExpiresAt).toLocaleDateString() : "7 days"}</strong> before freezing.
+            </span>
+          </div>
+          <Link to="/pricing">
+            <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-black font-bold shrink-0">
+              Renew Pro
+            </Button>
+          </Link>
+        </div>
+      )}
+
+      {challenge.status === "Frozen" && (
+        <div className="glass p-4 rounded-2xl border border-red-500/40 bg-red-500/10 text-red-300 flex items-center justify-between gap-4 text-sm">
+          <div className="flex items-center gap-2">
+            <Ban size={18} className="shrink-0 text-red-400" />
+            <span>
+              <strong>Challenge Frozen:</strong> {challenge.frozenReason || "Free tier is limited to 1 active challenge. Upgrade to Pro to unfreeze."}
+            </span>
+          </div>
+          <Link to="/pricing">
+            <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold shrink-0">
+              Upgrade to Pro
+            </Button>
+          </Link>
+        </div>
+      )}
+
+      <div className="glass p-6 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="font-heading text-2xl font-bold mb-1">Manage: {challenge.title}</h1>
+            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+              <span>Status: <strong className={challenge.status === 'Completed' ? 'text-emerald-400' : challenge.status === 'Cancelled' ? 'text-amber-400' : challenge.status === 'Frozen' ? 'text-red-400' : 'text-primary'}>{challenge.status}</strong></span>
+              <span>Submissions: <strong>{submissions?.length || 0}</strong></span>
+              <span>Reward: <strong>{challenge.xpReward} XP</strong></span>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <ShareChallengeButtons
+              challengeId={challenge.id}
+              title={challenge.title}
+              companyName={challenge.companyName}
+              rewardType={challenge.rewardType}
+              rewardLabel={challenge.rewardLabel}
+            />
+
+            {challenge.status !== "Completed" && challenge.status !== "Cancelled" && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCancel}
+                className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10 flex items-center gap-1.5"
+              >
+                <Ban size={14} /> Stop / Cancel
+              </Button>
+            )}
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDelete}
+              className="border-red-500/30 text-red-400 hover:bg-red-500/10 flex items-center gap-1.5"
+            >
+              <Trash2 size={14} /> Delete
+            </Button>
+          </div>
         </div>
       </div>
 

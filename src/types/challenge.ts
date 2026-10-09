@@ -1,5 +1,5 @@
 export type ChallengeCategory = "Tech" | "Growth" | "Hybrid" | "Design" | "Data";
-export type ChallengeStatus = "Open" | "In Progress" | "Judging" | "Completed";
+export type ChallengeStatus = "Open" | "In Progress" | "Judging" | "Completed" | "Cancelled" | "Frozen";
 export type ChallengeDifficulty = "Beginner" | "Intermediate" | "Advanced" | "Expert";
 export type RewardType = "Hire" | "Money" | "Recognition";
 
@@ -34,6 +34,13 @@ export interface Challenge {
   submissions?: Submission[];
   requirements: string[];
   createdAt: string;
+  inGracePeriod?: boolean;
+  graceExpiresAt?: string;
+  frozenReason?: string;
+  frozenAt?: string;
+  cancelledAt?: string;
+  // Source tracking: true = posted by SOHO admin (free for all builders), false/absent = posted by a founder
+  postedByAdmin?: boolean;
 }
 
 export interface ScoringCriterion {
@@ -72,5 +79,5 @@ export interface Payout {
 }
 
 export const CATEGORIES: ChallengeCategory[] = ["Tech", "Growth", "Hybrid", "Design", "Data"];
-export const STATUSES: ChallengeStatus[] = ["Open", "In Progress", "Judging", "Completed"];
+export const STATUSES: ChallengeStatus[] = ["Open", "In Progress", "Judging", "Completed", "Cancelled", "Frozen"];
 export const DIFFICULTIES: ChallengeDifficulty[] = ["Beginner", "Intermediate", "Advanced", "Expert"];
