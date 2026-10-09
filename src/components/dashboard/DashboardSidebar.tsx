@@ -11,6 +11,7 @@ import {
   Briefcase,
   UserCircle,
   MessageSquare,
+  ShieldCheck,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useNavigate } from "react-router-dom";
@@ -52,6 +53,15 @@ export function DashboardSidebar() {
 
   // Role-based mode — driven by the Firestore role, not the URL
   const isFounderMode = role === "founder";
+  const userEmail = user?.email?.toLowerCase() || "";
+  const isAdmin = !!(
+    user && (
+      userEmail.endsWith("@entrext.com") ||
+      userEmail.endsWith("@entrext.in") ||
+      userEmail.includes("entrext") ||
+      role === "admin"
+    )
+  );
   const mainItems = isFounderMode ? founderItems : talentItems;
 
   // User initials for avatar
@@ -113,6 +123,21 @@ export function DashboardSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+
+              {/* Admin Console — exclusive link for @entrext.com & @entrext.in accounts */}
+              {isAdmin && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to="/admin"
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 transition-all border border-amber-500/30 my-1 font-semibold"
+                    >
+                      <ShieldCheck className="h-4 w-4 flex-shrink-0 text-amber-400" />
+                      {!collapsed && <span className="text-sm">Admin Console</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
 
               {/* Post Challenge — founder only CTA */}
               {isFounderMode && (

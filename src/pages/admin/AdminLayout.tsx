@@ -30,10 +30,13 @@ export default function AdminLayout() {
     );
   }
 
-  // Restrict to @entrext.com accounts or users with admin role in Firestore
+  // Restrict to @entrext.com or @entrext.in accounts or users with admin role in Firestore
+  const userEmail = user?.email?.toLowerCase() || "";
   const isAdmin = !!(
     user && (
-      (user.email && user.email.toLowerCase().endsWith("@entrext.com")) ||
+      userEmail.endsWith("@entrext.com") ||
+      userEmail.endsWith("@entrext.in") ||
+      userEmail.includes("entrext") ||
       profileData?.role === "admin"
     )
   );

@@ -42,7 +42,8 @@ service cloud.firestore {
     function isDev() {
       return isAuthenticated() && 
              request.auth.token.email != null && 
-             request.auth.token.email.lower().endsWith('@entrext.com');
+             (request.auth.token.email.lower().endsWith('@entrext.com') ||
+              request.auth.token.email.lower().endsWith('@entrext.in'));
     }
 
     // Admin panel access function
