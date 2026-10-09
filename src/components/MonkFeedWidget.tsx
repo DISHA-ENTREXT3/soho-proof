@@ -7,10 +7,15 @@ declare global {
   }
 }
 
-export default function MonkFeedWidget() {
+interface MonkFeedWidgetProps {
+  userId?: string;
+  email?: string;
+}
+
+export default function MonkFeedWidget({ userId: propUserId, email: propEmail }: MonkFeedWidgetProps = {}) {
   const { user } = useAuth();
-  const userId = user?.uid;
-  const email = user?.email;
+  const userId = propUserId ?? user?.uid;
+  const email = propEmail ?? user?.email;
   const [remountKey, setRemountKey] = useState(0);
 
   useEffect(() => {
@@ -34,9 +39,11 @@ export default function MonkFeedWidget() {
       if (!script) {
         script = document.createElement('script');
         script.id = scriptId;
-        script.src = "https://upvote.entrext.com/widget.js";
+        script.src = "https://www.monkfeed.com//widget.js";
         script.async = true;
         document.body.appendChild(script);
+      } else if (script.src !== "https://www.monkfeed.com//widget.js") {
+        script.src = "https://www.monkfeed.com//widget.js";
       }
     };
 
@@ -57,11 +64,12 @@ export default function MonkFeedWidget() {
     <div key={remountKey} id="monkfeed-container">
       <div 
         className="monkfeed-widget upvote-widget"
-        data-application-id="69baa800f2b9c4ec3d6aea89"
+        data-application-id="6ac8bde0678428a346d22bdf"
         data-feedback-enabled="true"
         data-show-feedback="true"
         data-user-id={userId || ''}
         data-email={email || ''}
+        data-require-identity="false"
         data-position="right"
         data-primary-color="#4f46e5"
         data-secondary-color="#000000"
@@ -73,8 +81,7 @@ export default function MonkFeedWidget() {
         data-product-overview="Soho Space: The Proof-of-Execution Hiring Platform."
         data-about-text="We help founders hire based on real-world challenges and builders show off their execution."
         data-faqs='[{"question":"What is Soho Space?","answer":"It is a hiring platform based on proof-of-execution."}, {"question":"How do I earn XP?","answer":"By completing and winning challenges posted by founders."}]'
-      >
-      </div>
+      />
     </div>
   );
 }
