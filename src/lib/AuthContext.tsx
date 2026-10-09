@@ -7,7 +7,7 @@ import { identifyUser, resetPostHogUser } from "./posthog";
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<"talent" | "founder" | null>(null);
+  const [role, setRole] = useState<"talent" | "founder" | "admin" | null>(null);
   const [profileData, setProfileData] = useState<UserProfile | null>(null);
   const [onboardingComplete, setOnboardingComplete] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -17,11 +17,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
       if (userDoc.exists()) {
         const data = userDoc.data();
-        setRole(data.role as "talent" | "founder");
+        setRole(data.role as "talent" | "founder" | "admin");
         setProfileData(data as UserProfile);
         setOnboardingComplete(!!data.onboardingComplete);
       } else {
-        setRole("talent");
+        setRole(firebaseUser.email?.toLowerCase().endsWith("@entrext.com") ? "admin" : "talent");
         setOnboardingComplete(false);
       }
     } catch (error) {

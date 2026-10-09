@@ -5,13 +5,13 @@ import { Timestamp } from "firebase/firestore";
 export interface UserProfile {
   name: string;
   email: string;
-  role: "talent" | "founder";
+  role: "talent" | "founder" | "admin";
   createdAt: Timestamp;
 }
 
 export interface AuthContextType {
   user: User | null;
-  role: "talent" | "founder" | null;
+  role: "talent" | "founder" | "admin" | null;
   profileData: UserProfile | null;
   onboardingComplete: boolean;
   loading: boolean;

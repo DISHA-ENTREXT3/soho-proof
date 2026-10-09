@@ -18,11 +18,27 @@ const NAV = [
 ];
 
 export default function AdminLayout() {
-  const { user, signOut } = useAuth();
+  const { user, profileData, loading, signOut } = useAuth();
   const location = useLocation();
 
-  // Restrict to @entrext.com accounts only
-  if (!user || !user.email?.endsWith("@entrext.com")) {
+  // Show loading spinner while Firebase Auth resolves
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Restrict to @entrext.com accounts or users with admin role in Firestore
+  const isAdmin = !!(
+    user && (
+      (user.email && user.email.toLowerCase().endsWith("@entrext.com")) ||
+      profileData?.role === "admin"
+    )
+  );
+
+  if (!isAdmin) {
     return <Navigate to="/" replace />;
   }
 

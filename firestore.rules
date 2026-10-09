@@ -40,12 +40,14 @@ service cloud.firestore {
     }
     
     function isDev() {
-      return isAuthenticated() && request.auth.token.email.endsWith('@entrext.com');
+      return isAuthenticated() && 
+             request.auth.token.email != null && 
+             request.auth.token.email.lower().endsWith('@entrext.com');
     }
 
-    // Alias for admin panel use
+    // Admin panel access function
     function isAdmin() {
-      return isDev();
+      return isDev() || (isAuthenticated() && 'role' in getUserData() && getUserData().role == 'admin');
     }
 
     // Challenges Collection
@@ -53,21 +55,28 @@ service cloud.firestore {
       // Anyone can view challenges
       allow read: if true;
       
-      // Only founders can create challenges
+      // Only founders or admins can create challenges
       // Starter Founders: Limited to 1 challenge
-      // Pro Founders: Unlimited
-      allow create: if isAuthenticated() && 
-                    getUserData().role == 'founder' && 
-                    (isPro() || (
-                      !('challengeCount' in getUserData()) || 
-                      getUserData().challengeCount < 1
-                    ));
+      // Pro Founders & Admins: Unlimited
+      allow create: if isAuthenticated() && (
+                      isAdmin() || (
+                        getUserData().role == 'founder' && 
+                        (isPro() || (
+                          !('challengeCount' in getUserData()) || 
+                          getUserData().challengeCount < 1
+                        ))
+                      )
+                    );
       
-      // Basic update for metadata, incrementing participants
-      allow update: if isAuthenticated();
+      // Update metadata, participant counters, status change, or admin moderation
+      allow update: if isAuthenticated() && (
+                      isAdmin() || 
+                      isOwner(resource.data.founderId) || 
+                      request.auth.uid != null
+                    );
       
-      // Respect deletion restriction, but allow devs for testing
-      allow delete: if isDev();
+      // Allow admins and founders to delete/cancel their own challenges
+      allow delete: if isAdmin() || (isAuthenticated() && isOwner(resource.data.founderId));
     }
 
     // Submissions Collection
