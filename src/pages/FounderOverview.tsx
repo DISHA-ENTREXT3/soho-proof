@@ -73,18 +73,30 @@ const FounderOverview = () => {
                 {industry}
               </span>
             )}
-            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide ${
-              p?.subscriptionTier === 'pro' 
-                ? "bg-yellow-400/20 text-yellow-400 border border-yellow-400/30" 
-                : "bg-muted text-muted-foreground"
-            }`}>
-              {p?.subscriptionTier === 'pro' ? 'Founder Pro' : 'Starter Trial'}
-            </span>
-            {p?.subscriptionTier !== 'pro' && (
-              <span className="text-[10px] text-muted-foreground font-medium">
-                ({1 - (p?.challengeCount ?? 0)}/1 challenge left)
-              </span>
-            )}
+            {(() => {
+              const userEmail = user?.email?.toLowerCase() || "";
+              const isAdmin = userEmail.endsWith("@entrext.com") || userEmail.endsWith("@entrext.in") || userEmail.includes("entrext") || (p?.role as string) === "admin";
+              const isPro = p?.subscriptionTier === "pro" || isAdmin;
+
+              return (
+                <>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide ${
+                    isAdmin
+                      ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                      : isPro
+                      ? "bg-yellow-400/20 text-yellow-400 border border-yellow-400/30"
+                      : "bg-muted text-muted-foreground"
+                  }`}>
+                    {isAdmin ? "Admin Pro" : isPro ? "Founder Pro" : "Starter Trial"}
+                  </span>
+                  {!isPro && (
+                    <span className="text-[10px] text-muted-foreground font-medium">
+                      ({1 - (p?.challengeCount ?? 0)}/1 challenge left)
+                    </span>
+                  )}
+                </>
+              );
+            })()}
           </div>
         </div>
         <div className="flex items-center gap-3">

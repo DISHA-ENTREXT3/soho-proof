@@ -26,7 +26,24 @@ export async function getFounderSubscription(founderId: string): Promise<Founder
     const userDoc = await getDoc(doc(db, "users", founderId));
     if (userDoc.exists()) {
       const data = userDoc.data();
-      const plan = (data.plan || data.tier || "free").toLowerCase();
+      const email = (data.email || "").toLowerCase();
+      const role = (data.role || "").toLowerCase();
+
+      // Automatically grant Pro status to @entrext.com, @entrext.in, entrext accounts, and admins
+      if (
+        email.endsWith("@entrext.com") ||
+        email.endsWith("@entrext.in") ||
+        email.includes("entrext") ||
+        role === "admin" ||
+        data.subscriptionTier === "pro"
+      ) {
+        return {
+          tier: "pro",
+          status: "active",
+        };
+      }
+
+      const plan = (data.plan || data.tier || data.subscriptionTier || "free").toLowerCase();
       const status = (data.subscriptionStatus || "active").toLowerCase();
       const endDate = data.subscriptionEndDate || null;
 

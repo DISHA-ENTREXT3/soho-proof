@@ -93,20 +93,32 @@ const DashboardOverview = () => {
           </h1>
           <div className="flex items-center gap-2 mt-1">
             <p className="text-muted-foreground text-sm">Here's your performance snapshot.</p>
-            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide ${
-              p?.subscriptionTier === 'pro'
-                ? "bg-primary/20 text-primary border border-primary/30"
-                : isRestricted
-                  ? "bg-red-500/20 text-red-400 border border-red-500/30"
-                  : "bg-muted text-muted-foreground"
-            }`}>
-              {p?.subscriptionTier === 'pro' ? 'Builder Pro' : isRestricted ? 'Restricted' : 'Explorer Free'}
-            </span>
-            {p?.subscriptionTier !== 'pro' && (
-              <span className="text-[10px] text-muted-foreground font-medium">
-                ({Math.max(0, FREE_TIER_MONTHLY_FOUNDER_LIMIT - founderUsed)}/{FREE_TIER_MONTHLY_FOUNDER_LIMIT} founder entries left this month)
-              </span>
-            )}
+            {(() => {
+              const userEmail = user?.email?.toLowerCase() || "";
+              const isAdmin = userEmail.endsWith("@entrext.com") || userEmail.endsWith("@entrext.in") || userEmail.includes("entrext") || (p?.role as string) === "admin";
+              const isPro = p?.subscriptionTier === "pro" || isAdmin;
+
+              return (
+                <>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide ${
+                    isAdmin
+                      ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                      : isPro
+                      ? "bg-primary/20 text-primary border border-primary/30"
+                      : isRestricted
+                      ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                      : "bg-muted text-muted-foreground"
+                  }`}>
+                    {isAdmin ? "Admin Pro" : isPro ? "Builder Pro" : isRestricted ? "Restricted" : "Explorer Free"}
+                  </span>
+                  {!isPro && (
+                    <span className="text-[10px] text-muted-foreground font-medium">
+                      ({Math.max(0, FREE_TIER_MONTHLY_FOUNDER_LIMIT - founderUsed)}/{FREE_TIER_MONTHLY_FOUNDER_LIMIT} founder entries left this month)
+                    </span>
+                  )}
+                </>
+              );
+            })()}
           </div>
         </div>
         {user && (

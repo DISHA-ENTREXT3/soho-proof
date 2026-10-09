@@ -53,6 +53,23 @@ export async function getBuilderSubscription(
     const userDoc = await getDoc(doc(db, "users", builderId));
     if (userDoc.exists()) {
       const data = userDoc.data();
+      const email = (data.email || "").toLowerCase();
+      const role = (data.role || "").toLowerCase();
+
+      // Automatically grant Pro status to @entrext.com, @entrext.in, entrext accounts, and admins
+      if (
+        email.endsWith("@entrext.com") ||
+        email.endsWith("@entrext.in") ||
+        email.includes("entrext") ||
+        role === "admin" ||
+        data.subscriptionTier === "pro"
+      ) {
+        return {
+          tier: "pro",
+          status: "active",
+        };
+      }
+
       const plan = (data.plan || data.tier || data.subscriptionTier || "free").toLowerCase();
       const rawStatus = (data.subscriptionStatus || "active").toLowerCase();
       const endDate: string | null = data.subscriptionEndDate || null;
