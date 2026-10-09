@@ -14,7 +14,7 @@ Soho Space relies on Firebase as its core cloud backend platform. This document 
 
 ## 3. Firestore Security Rules Breakdown (`firestore.rules`)
 
-The security model is defined declaratively using `rules_version = '2'`. It enforces strict role isolation, owner ownership controls, subscription tier quotas, and immutable protected fields.
+The security model is defined declaratively using `rules_version = '2'`. It enforces strict role isolation, owner ownership controls, subscription tier quotas, 7-day grace period rules, and immutable protected fields.
 
 ### 3.1 Security Helper Functions
 ```javascript
@@ -38,6 +38,10 @@ function isFounder() {
   return isAuthenticated() && getUserData().role == 'founder';
 }
 
+function isAdmin() {
+  return isAuthenticated() && (getUserData().role == 'admin' || request.auth.token.email.endsWith('@entrext.com'));
+}
+
 function isDev() {
   return isAuthenticated() && request.auth.token.email.endsWith('@entrext.com');
 }
@@ -48,39 +52,46 @@ function isDev() {
 ### 3.2 Collection Rule Specifications
 
 #### `match /challenges/{challengeId}`
-- **Read**: `allow read: if true;` (Publicly discoverable by guests and candidates).
-- **Create**: Allowed only for authenticated founders.
-  - `Pro` founders: Unlimited creations.
-  - `Starter` founders: Restricted to 1 challenge max (`challengeCount < 1`).
-- **Update**: Allowed for authenticated users (metadata & participant counters).
-- **Delete**: Restricted to dev accounts (`isDev()`).
+- **Read**: `allow read: if true;` (Publicly discoverable by guests, candidates, and founders).
+- **Create**: Allowed for authenticated founders or admin.
+  - `Admin`: Can create official SOHO Space weekly drops (`isSOHOChallenge == true`).
+  - `Pro` founders: Unlimited challenge creations.
+  - `Starter` (Free) founders: Restricted to 1 active challenge (`status == 'Open'`).
+- **Update**: Allowed for challenge owner (founder) or admin. Founders can update metadata, change status to `Cancelled` or `Completed`, or stop/cancel their active challenge.
+- **Delete**: Restricted to challenge owner (founder) or admins (`isOwner(resource.data.founderId) || isAdmin()`).
 
 #### `match /submissions/{submissionId}`
-- **Read**: `allow read: if true;` (Public proof-of-work profiles).
+- **Read**: `allow read: if true;` (Public proof-of-work profiles & leaderboards).
 - **Create**: Allowed only for authenticated talent (builders).
-  - `Pro` builders: Unlimited submissions.
-  - `Starter` builders: Restricted to 4 submissions max (`submissionCount < 4`).
+  - `SOHO Space Challenges`: Unlimited free submissions for all builders to build rank & XP.
+  - `Pro` builders: Unlimited founder challenge submissions.
+  - `Starter` (Free) builders: Restricted to 4 founder challenge submissions per month (`monthlyFounderSubmissionsCount < 4`).
 - **Update**:
   - Builders can update their own submission (`isOwner(resource.data.talentId)`).
   - Challenge owners (founders) can **only** edit review fields (`['status', 'score', 'feedback']`).
-- **Delete**: Restricted to dev accounts (`isDev()`).
+- **Delete**: Restricted to owner or admins (`isOwner(resource.data.talentId) || isAdmin()`).
 
 #### `match /users/{userId}`
 - **Read**: `allow read: if true;` (Public builder/founder profiles).
 - **Create**: Allowed if authenticated and `request.auth.uid == userId`.
 - **Update**:
   - Users can update their own profile fields.
-  - **Protection**: Users are blocked from self-modifying `subscriptionTier` or `role` keys (`!request.resource.data.diff(resource.data).affectedKeys().hasAny(['subscriptionTier', 'role'])`). Pro upgrades are strictly gated through server-side payment webhooks.
+  - **Protection**: Users are blocked from self-modifying `subscriptionTier`, `role`, or `gracePeriodEnd` keys (`!request.resource.data.diff(resource.data).affectedKeys().hasAny(['subscriptionTier', 'role', 'gracePeriodEnd'])`). Pro upgrades and subscription lifecycle state changes are strictly gated through server-side payment webhooks and admin controllers.
 
 #### `match /messages/{messageId}`
-- **Read**: Only participants (`founderId == auth.uid || builderId == auth.uid`).
+- **Read**: Only participants (`founderId == auth.uid || builderId == auth.uid` or `isAdmin()`).
 - **Create**: Validated sender matching authenticated identity and user role.
 - **Update / Delete**: `allow update, delete: if false;` (Immutable audit trail).
 
 #### `match /payouts/{payoutId}`
-- **Read**: Pro users or involved founder/builder.
+- **Read**: Pro users, involved founder/builder, or admin.
 - **Create**: Authenticated founders for their own challenges.
 - **Update**: Restricted to modifying payout state (`['status', 'transferReference', 'payoutNotes', 'paidAt']`).
+
+#### `match /waitlist/{waitlistId}`
+- **Read**: Admin only (`isAdmin()`).
+- **Create**: Allowed for all users (public email capture from Hero).
+- **Update / Delete**: Admin only (`isAdmin()`).
 
 ---
 
@@ -133,3 +144,4 @@ Populate development challenges and test data using:
 npm run seed:dev
 ```
 This executes `scripts/seed-dev.js` using Firebase Admin SDK credentials.
+

@@ -8,31 +8,39 @@
 
 **Soho Space** is a meritocratic, proof-of-execution hiring platform connecting startup founders with top-tier technical talent ("Alpha Builders"). Instead of reviewing static resumes, founders post skill-testing challenges with real bounties, while builders complete challenges to demonstrate verified execution, earn XP, and secure positions or cash rewards.
 
+The platform operates on **two clear challenge tracks**:
+- ⚡ **SOHO Weekly Challenges**: Released every Monday by Soho Space, completely free for all builders with no monthly limits to build XP and climb the Top 100 Leaderboard.
+- 🎯 **Founder Challenges**: Real hiring & bounty challenges posted by startup founders.
+
 ---
 
 ## 📚 Documentation Portal
 
 Detailed technical documentation is available in the [`docs/`](file:///d:/sohospace2/soho-proof/docs) directory:
 
-- 📋 **[Product Requirement Document (PRD)](file:///d:/sohospace2/soho-proof/docs/PRD.md)**: Product vision, user personas, complete capability specifications, monetization strategy, comprehensive marketing playbook, and product roadmap.
-- 🏗️ **[System Architecture Design](file:///d:/sohospace2/soho-proof/docs/ARCHITECTURE.md)**: Top-level system topology, frontend/backend component structure, security model, and integration blueprints.
-- 🗄️ **[Database Design Specification](file:///d:/sohospace2/soho-proof/docs/DATABASE_DESIGN.md)**: Cloud Firestore collection schemas, document field specifications, ERD, and indexing strategy.
-- 🔒 **[Firebase Structure & Security Rules](file:///d:/sohospace2/soho-proof/docs/FIREBASE_STRUCTURE.md)**: Detailed breakdown of Firestore security rules, helper functions, access policies, and dev setup.
+- 📋 **[Product Requirement Document (PRD)](file:///d:/sohospace2/soho-proof/docs/PRD.md)**: Product vision, user personas, complete capability specifications, subscription tier quotas, monetization strategy, and growth playbook.
+- 🏗️ **[System Architecture Design](file:///d:/sohospace2/soho-proof/docs/ARCHITECTURE.md)**: Top-level system topology, frontend/backend component structure, RBAC security model, and integration blueprints.
+- 🗄️ **[Database Design Specification](file:///d:/sohospace2/soho-proof/docs/DATABASE_DESIGN.md)**: Cloud Firestore collection schemas, subscription lifecycle fields, ERD, and composite indexing strategy.
+- 🔒 **[Firebase Structure & Security Rules](file:///d:/sohospace2/soho-proof/docs/FIREBASE_STRUCTURE.md)**: Detailed breakdown of Firestore security rules, helper functions, 7-day grace period enforcement, and dev setup.
 
 ---
 
 ## ⚡ Core Features
 
-- 🎯 **Proof-of-Work Profiles**: Verified skill metrics, level calculation, and challenge history instead of text-based resumes.
-- 🏆 **Gamified Talent Discovery**: Automated XP calculation, builder leaderboards, and skill categorization (Tech, Growth, Hybrid, Design, Data).
-- 💼 **Dual Portal System**:
-  - **Founder Portal**: Post challenges, define weighted scoring criteria, review submissions, grade proof-of-work, message builders, and issue payouts.
-  - **Builder Portal**: Explore bounties, submit work (code links, PRs, dynamic demos), track review statuses, and claim rewards.
-- 💳 **Monetization & Subscriptions**:
-  - Tiered plans (Starter vs Pro) powered by Dodo Payments webhooks.
-  - Quota enforcement (Starter founders: 1 challenge limit; Starter builders: 2 submission limit; Pro: Unlimited + Direct Messaging).
+- 🎯 **Proof-of-Work Profiles**: Verified skill metrics, level calculation, challenge history, and viral sharing capabilities (`/profile/:id`).
+- 🏆 **Gamified Talent Discovery**: Automated XP calculation, global Top 100 builder leaderboard (`/community`), and multi-domain skill categories (Tech, Growth, Hybrid, Design, Data).
+- 💼 **Dual Portal & Tier System**:
+  - **Founder Portal**: Post challenges, delete/cancel/stop active challenges, define weighted scoring criteria, review submissions, grade proof-of-work, message builders, and issue payouts.
+    - *Free Tier*: 1 active challenge limit per month.
+    - *Pro Tier*: Unlimited active challenges + 7-day grace period warning on subscription expiration before secondary challenges freeze.
+  - **Builder Portal**:
+    - *Free Tier*: **Unlimited** SOHO Weekly Monday challenges + **up to 4 Founder challenges** per month.
+    - *Pro Tier*: **Unlimited** Founder challenges, verified builder badge, and direct outreach.
+- 🛡️ **Admin Console (`/admin/*`)**: System overview metrics, builder & founder management, SOHO Space weekly drop publishing, challenge moderation, and waitlist management.
+- 💳 **Monetization & Subscriptions**: Tiered plans (Starter vs Pro) powered by Dodo Payments webhooks with automated cycle tracking.
 - 💬 **Direct Messaging**: In-app chat threads between founders and candidates.
 - 📣 **Embedded Feedback**: Built-in MonkFeed widget integration for platform feedback and upvoting.
+
 
 ---
 

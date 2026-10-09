@@ -1,6 +1,6 @@
 # Product Requirement Document (PRD) — Soho Space
 
-**Document Version**: 1.0.0  
+**Document Version**: 1.1.0  
 **Product Name**: Soho Space (`soho-proof`)  
 **Product Type**: SaaS Marketplace & Proof-of-Execution Hiring Platform  
 **Target Audience**: Startup Founders / Hiring Managers & Technical Builders ("Alpha Builders")  
@@ -12,9 +12,9 @@
 ### 1.1 Product Vision
 **Soho Space** is building the world's premier **Proof-of-Execution Hiring Platform**. We believe traditional resume-based recruiting is broken—resumes are inflated, credentials don't equal execution, and technical screening relies on artificial algorithmic riddles rather than real-world project delivery.
 
-Soho Space replaces traditional job boards with a meritocratic marketplace where:
-- **Founders** post real engineering, product, growth, data, and design challenges with tangible rewards (hires, cash bounties, public recognition).
-- **Alpha Builders** solve real challenges, submit verifiable proof of execution (working code, deployed demos, PRs, design artifacts), earn XP, rank on leaderboards, and land startup roles.
+Soho Space replaces traditional job boards with a meritocratic marketplace operating on two distinct tracks:
+- **SOHO Weekly Challenges**: Hosted by Soho Space every Monday, completely free for all builders to solve, gain XP, and climb the Top 100 Leaderboard.
+- **Founder Challenges**: Posted by verified startup founders with real bounties & job opportunities.
 
 ---
 
@@ -29,7 +29,8 @@ Soho Space replaces traditional job boards with a meritocratic marketplace where
 - **Goals**:
   - Quickly test candidate execution capabilities using actual startup problems before hiring.
   - Outsource micro-tasks / feature bounties while screening potential team members.
-  - Access a vetted talent pool of active, high-signal builders.
+  - Control active challenge volume (1 active challenge on Free tier, unlimited on Pro tier).
+  - Easily delete, cancel, or stop challenges when roles are filled or requirements change.
 
 ### 2.2 Persona B: "Alpha Builder" (The Candidate / Talent Side)
 - **Profile**: Full-stack engineer, frontend wizard, AI developer, growth hacker, or product designer.
@@ -38,9 +39,9 @@ Soho Space replaces traditional job boards with a meritocratic marketplace where
   - Lack of traditional big-tech branding makes getting interviews difficult.
   - Frustration with non-practical LeetCode interviews that don't test real building skills.
 - **Goals**:
-  - Showcase real proof-of-work (GitHub PRs, live deployed apps, Figma specs).
-  - Earn cash bounties and reputation (XP & Level ranking) while looking for roles.
-  - Connect directly with decision-maker founders without recruiter gatekeepers.
+  - Complete free SOHO weekly challenges to continuously rank higher on the public Top 100 leaderboard.
+  - Perform up to 4 Founder hiring challenges per month on the Free tier (or unlimited on Pro tier).
+  - Earn cash bounties and showcase real proof-of-work (GitHub PRs, live deployed apps, Figma specs).
 
 ---
 
@@ -48,70 +49,82 @@ Soho Space replaces traditional job boards with a meritocratic marketplace where
 
 ```mermaid
 graph TD
-    Sub[Public Surface] --> Home[Landing Page & Value Prop]
+    Sub[Public Surface] --> Home[Landing Page & Dual-Track Hook]
     Sub --> Pricing[Dual-Sided Subscription Tiers]
     Sub --> Profiles[Shareable Public Proof Profiles]
+    Sub --> Community[Public Community & Leaderboard]
     
     Auth[Authentication & Onboarding] --> Role[Role Selection: Founder vs Talent]
     Auth --> ProfileSetup[Profile Setup & Portfolio Links]
 
-    Talent[Builder Workspace] --> Explore[Explore Bounties & Filter]
+    Talent[Builder Workspace] --> SOHODrops[Unlimited SOHO Weekly Drops]
+    Talent --> FounderBounties[Founder Challenges - 4/mo Free]
     Talent --> WorkSub[Submit Proof of Work]
     Talent --> XPTracker[XP, Level & Badges]
     Talent --> DirectMsgBuilder[Direct Message Founders]
 
     Founder[Founder Workspace] --> ChallengeWiz[Create Challenge Wizard]
+    Founder --> ManageChallengs[Delete / Cancel / Stop Challenges]
+    Founder --> GracePeriod[7-Day Grace Period Handling]
     Founder --> SubReview[Review Submissions & Grade]
     Founder --> WinnerPay[Award Winner & Issue Payout]
     Founder --> DirectMsgFounder[Direct Message Builders]
+
+    Admin[Admin Console /admin] --> SOHOPublish[Publish SOHO Monday Drops]
+    Admin --> UserMgmt[Manage Builders & Founders]
+    Admin --> Moderation[Challenge Moderation & Freeze Overrides]
 ```
 
 ---
 
 ### 3.1 Public Surface & Auth System
 1. **Landing Page (`/`)**:
-   - High-impact value proposition showcasing active challenge ticker, platform stats, top builders leaderboard preview, and founder testimonials.
+   - High-impact value proposition highlighting the difference between weekly SOHO ranking challenges and Founder hiring challenges, hero mission pill above the fold, role switcher, and early email capture.
 2. **Pricing Page (`/pricing`)**:
-   - Transparent plan breakdown for both Founders and Builders with 7-day trials.
-3. **Public Builder Profile (`/profile/:id`)**:
-   - Shareable proof-of-work showcase displaying verified challenges completed, winning entries, total XP, builder level, and external links (GitHub, LinkedIn, Website).
-4. **Authentication (`/auth`, `/login`)**:
+   - Transparent plan breakdown for both Founders (Starter vs Pro) and Builders (Starter vs Pro).
+3. **Public Community & Leaderboard (`/community`)**:
+   - Global Top 100 Builder ranking, featured builders, and recent submission showcase.
+4. **Public Builder Profile (`/profile/:id`)**:
+   - Shareable proof-of-work showcase displaying verified challenges completed, winning entries, total XP, builder level, and viral social share buttons.
+5. **Authentication (`/auth`, `/login`)**:
    - Firebase Auth integration with Email/Password & Google OAuth.
-   - Guarded onboarding redirection to enforce role assignment (`talent` vs `founder`).
 
 ---
 
 ### 3.2 Founder Workspace (`/dashboard/founder`)
-1. **Challenge Publishing Wizard**:
-   - Create bounties specifying Category (`Tech`, `Growth`, `Hybrid`, `Design`, `Data`), Difficulty (`Beginner` to `Expert`), XP Reward, Reward Type (`Hire`, `Money`, `Recognition`), Compensation details, Deadline, and Max Participants.
-   - Define custom weighted **Scoring Criteria** (e.g., Code Quality 40%, UX/UI 30%, Performance 30%).
-2. **Submission Review & Grading**:
-   - Dedicated review dashboard displaying candidate summary, submission link (PR/Live URL), and submitted timestamp.
-   - Interactive grading modal with breakdown score inputs matching challenge criteria and feedback notes.
-   - Action buttons to mark as `Reviewed` or select `Winner`.
-3. **Payout Tracker (`/dashboard/founder` -> Payouts tab)**:
-   - Automated payout record creation when a winner is crowned.
-   - Manual transfer reference input, payment status updates (`Pending` -> `Paid`), and receipt export.
+1. **Challenge Publishing & Quotas**:
+   - Create bounties specifying Category (`Tech`, `Growth`, `Hybrid`, `Design`, `Data`), Difficulty, XP Reward, Reward Type, Compensation details, Deadline, and Max Participants.
+   - **Tier Quota**: Free tier founders can have **1 active challenge** at a time. Pro tier founders have unlimited active challenges.
+2. **Delete / Cancel / Stop Challenge Controls**:
+   - Founders can delete, cancel, or stop an active challenge at any time directly from their manage dashboard, immediately releasing their active challenge slot.
+3. **Subscription Lifecycle & 7-Day Grace Period**:
+   - When a Pro subscription expires without renewal, the system automatically checks for next-cycle payment.
+   - If not renewed, the account rolls back to Free tier.
+   - The founder receives a 7-day warning banner during which their latest challenge remains active.
+   - After 7 days without renewal, any secondary active challenges are automatically **frozen** (`status: "Frozen"`), preserving all candidate submissions and data safely until reactivated.
+4. **Submission Review & Payouts**:
+   - Interactive grading modal with weighted criteria.
+   - Automated payout record creation upon crowning a winner (`Pending` -> `Paid`).
 
 ---
 
 ### 3.3 Talent / Builder Workspace (`/dashboard/talent`)
-1. **Challenge Explorer**:
-   - Filter challenges by category, difficulty, reward type, and status.
-   - Detailed challenge modal with requirements, scoring criteria breakdown, participant count, and countdown timer.
+1. **Dual-Track Challenge Explorer**:
+   - **SOHO Weekly Drops**: Official challenges released every Monday by SOHO Space Admin. Free for all builders with no monthly limits; earns XP and advances leaderboard rank.
+   - **Founder Challenges**: Hiring & bounty challenges posted by startups. Free builders can participate in **up to 4 Founder challenges per month**. Upgrading to Builder Pro unlocks unlimited Founder challenges.
 2. **Proof-of-Work Submission Engine**:
-   - Simple modal for submitting proof summary link (GitHub repo/PR, Vercel/Netlify link, Loom walkthrough) and brief execution summary.
-3. **Gamification & XP System**:
+   - Modal for submitting proof summary link (GitHub repo/PR, Vercel/Netlify link, Loom walkthrough) and execution notes.
+3. **Gamification & Leaderboard**:
    - Dynamic level calculation based on accumulated XP:
      $$\text{Level} = \lfloor \sqrt{\frac{\text{XP}}{100}} \rfloor + 1$$
-   - Visual XP progress bar, level badge, and achievement indicators.
 
 ---
 
-### 3.4 Direct Messaging (`/dashboard/messages`)
-- Real-time direct messaging between Founders and Builders.
-- Triggerable directly from candidate submission reviews or builder profile pages.
-- Access restricted to Pro tier members or active challenge participants.
+### 3.4 Admin Console (`/admin/*`)
+- **SOHO Drops Management**: Admin capability to publish official Monday SOHO Space challenges.
+- **User Oversight**: Inspect builder profiles, adjust XP, audit founder companies, and manage featured leaderboard spots.
+- **Challenge Moderation**: Monitor all platform challenges, un-freeze or archive challenges, and review reported content.
+- **Waitlist & Analytics**: Manage early waitlist emails captured from the hero section.
 
 ---
 
@@ -120,8 +133,8 @@ graph TD
 - **Frontend**: SPA built with React 18, Vite, TypeScript, Tailwind CSS, Shadcn UI, and Framer Motion.
 - **Backend**: Express 5 API running on Node.js / Vercel Serverless Functions (`server/index.ts`).
 - **Database**: Cloud Firestore NoSQL database enforcing strict collection-level rules (`firestore.rules`) and composite query indexing (`firestore.indexes.json`).
-- **Authentication**: Firebase Authentication with role-guarded routing (`RequireAuth`, `RequireRole`).
-- **Webhooks**: Automated subscription upgrades via Dodo Payments (`POST /api/webhooks/dodo`).
+- **Authentication**: Firebase Authentication with role-guarded routing (`RequireAuth`, `RequireRole`, `RequireAdmin`).
+- **Webhooks**: Automated subscription upgrades & cycle checks via Dodo Payments (`POST /api/webhooks/dodo`).
 
 ---
 
@@ -129,12 +142,13 @@ graph TD
 
 ### 5.1 Pricing Tiers
 
-| Tier | Target User | Price | Features Included |
+| Tier | Target User | Price | Features & Quotas Included |
 |---|---|---|---|
-| **Starter Founder** | Early Founders | **Free** | 1 Active Challenge limit, access to public submissions, basic grading. |
-| **Founder Pro** | Scaling Startups | **\$49 / month** | Unlimited Challenges, Direct Messaging with candidates, Featured challenge placement, priority support. |
-| **Starter Builder** | Candidates | **Free** | 2 Active Submissions limit, public proof profile, XP & leaderboard access. |
-| **Builder Pro** | Active Jobseekers | **\$19 / month** | Unlimited Submissions, direct outreach to founders, Verified Builder badge, priority grading queue. |
+| **Founder Starter** | Early Founders | **Free** | 1 Active Challenge limit, cancel/delete active challenge controls, access to public submissions, basic grading. |
+| **Founder Pro** | Scaling Startups | **\$49 / month** | Unlimited Active Challenges, 7-day grace period on cycle renewal, Direct Messaging with candidates, Featured challenge placement. |
+| **Builder Starter** | Candidates | **Free** | **Unlimited** SOHO Weekly Challenges + **4 Founder Challenges / month**, public proof profile, XP & leaderboard access. |
+| **Builder Pro** | Active Jobseekers | **\$19 / month** | **Unlimited** Founder Challenges, direct outreach to founders, Verified Builder badge, priority grading queue. |
+
 
 ### 5.2 Enterprise & Bounty Transaction Fee Roadmap
 - **Bounty Escrow & Placement Fee**: 10% processing fee on cash bounty rewards.
