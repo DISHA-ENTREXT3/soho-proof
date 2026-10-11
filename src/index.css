@@ -133,11 +133,15 @@
   }
 
   .glow-primary {
-    box-shadow: 0 0 40px -10px hsl(160, 84%, 39%, 0.3);
+    box-shadow: 0 0 40px -10px hsl(344, 76%, 80%, 0.35);
   }
 
   .glow-accent {
-    box-shadow: 0 0 40px -10px hsl(270, 60%, 60%, 0.3);
+    box-shadow: 0 0 40px -10px hsl(344, 60%, 88%, 0.3);
+  }
+
+  .video-platform-grade {
+    filter: hue-rotate(320deg) saturate(1.15) contrast(1.05) brightness(1.02);
   }
 
   .section-padding {
